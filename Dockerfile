@@ -15,7 +15,7 @@ COPY package*.json ./
 
 # Installer les dépendances (en tant que root)
 USER root
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 # Copier le reste des fichiers
 COPY . .
