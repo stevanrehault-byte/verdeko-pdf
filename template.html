@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Guide d'Installation Verdeko</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* Police Optima avec fallbacks */
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;500;600;700&display=swap');
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -19,7 +20,7 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Optima', 'Lato', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: 11pt;
     color: #333;
     line-height: 1.4;
@@ -76,7 +77,7 @@ body {
 .cover-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(47,92,105,0.8), rgba(0,0,0,0.6));
+    background: linear-gradient(135deg, rgba(29,60,35,0.85) 0%, rgba(45,90,50,0.7) 50%, rgba(35,75,40,0.8) 100%);
 }
 .cover-card {
     position: relative;
@@ -262,6 +263,231 @@ body {
 }
 .col-left { flex: 1; }
 .col-right { flex: 1; }
+
+/* Layout page récap : produit en haut, infos en bas */
+.recap-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 100%;
+}
+.recap-product-row {
+    display: flex;
+    gap: 25px;
+    align-items: stretch;
+}
+.recap-product-main {
+    flex: 2;
+    display: flex;
+    gap: 20px;
+    background: white;
+    border: 3px solid var(--vert-primary);
+    border-radius: 12px;
+    padding: 20px;
+    align-items: center;
+}
+.recap-product-image {
+    flex: 0 0 180px;
+}
+.recap-product-image img {
+    width: 180px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+.recap-product-info {
+    flex: 1;
+}
+.recap-product-badge {
+    display: inline-block;
+    background: var(--vert-primary);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 9pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+.recap-product-name {
+    font-size: 20pt;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 15px;
+}
+.recap-product-prices {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+.recap-price-old {
+    color: #999;
+    text-decoration: line-through;
+    font-size: 12pt;
+}
+.recap-price {
+    font-size: 24pt;
+    font-weight: 700;
+    color: var(--vert-primary);
+}
+.recap-discount {
+    background: #ff5722;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 10pt;
+    font-weight: 600;
+}
+.recap-total-box {
+    flex: 1;
+    background: var(--vert-light);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.recap-total-label {
+    font-size: 10pt;
+    color: #666;
+    margin-bottom: 5px;
+}
+.recap-total-surface {
+    font-size: 18pt;
+    font-weight: 700;
+    color: var(--vert-primary);
+    margin-bottom: 15px;
+}
+.recap-total-price {
+    font-size: 22pt;
+    font-weight: 700;
+    color: var(--bleu-petrol);
+}
+.recap-info-row {
+    display: flex;
+    gap: 20px;
+}
+.recap-info-card {
+    flex: 1;
+    background: var(--gris-light);
+    border-radius: 10px;
+    padding: 18px;
+}
+
+/* Layout page calepinage : SVG 2/3 gauche, liste 1/3 droite */
+.calep-layout {
+    display: flex;
+    gap: 20px;
+    height: calc(100% - 80px);
+}
+.calep-svg-col {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+}
+.calep-list-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+    max-width: 280px;
+}
+.calep-header {
+    text-align: center;
+    margin-bottom: 15px;
+}
+.calep-surface {
+    font-size: 20pt;
+    font-weight: 700;
+    color: var(--vert-primary);
+}
+.calep-surface-label {
+    font-size: 11pt;
+    color: #666;
+}
+.calep-orient {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+.calep-orient-label {
+    font-size: 9pt;
+    color: #666;
+}
+.calep-orient-btn {
+    padding: 5px 12px;
+    border-radius: 5px;
+    font-size: 9pt;
+    font-weight: 500;
+}
+.svg-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fafafa;
+    border-radius: 10px;
+    padding: 10px;
+    overflow: hidden;
+}
+.svg-container svg {
+    max-width: 100%;
+    max-height: 100%;
+    height: auto;
+}
+.calep-list-card {
+    background: var(--gris-light);
+    border-radius: 10px;
+    padding: 15px;
+    flex: 1;
+    overflow: hidden;
+}
+.calep-list-title {
+    font-size: 10pt;
+    font-weight: 600;
+    color: var(--bleu-petrol);
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--vert-light);
+}
+.calep-rolls-table {
+    width: 100%;
+    font-size: 9pt;
+    border-collapse: collapse;
+}
+.calep-rolls-table th {
+    text-align: left;
+    font-weight: 600;
+    color: #666;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--gris-border);
+}
+.calep-rolls-table td {
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+}
+.calep-rolls-table .surface-col {
+    text-align: right;
+}
+.calep-summary {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 2px solid var(--vert-primary);
+    font-size: 9pt;
+}
+.calep-summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+.calep-summary-total {
+    font-weight: 700;
+    color: var(--vert-primary);
+}
 
 /* === SURFACE BOX === */
 .surface-box {
@@ -598,32 +824,42 @@ body {
         <span class="page-num">1 / 10</span>
     </div>
     <div class="page-content">
-        <div class="cols">
-            <div class="col-left">
-                <div class="card">
+        <div class="recap-layout">
+            <!-- Produit en haut, bien en avant -->
+            <div class="recap-product-row">
+                <div class="recap-product-main">
+                    <!--IF:PRODUIT_IMAGE--><div class="recap-product-image"><img src="{{PRODUIT_IMAGE}}" alt=""></div><!--ENDIF:PRODUIT_IMAGE-->
+                    <div class="recap-product-info">
+                        <div class="recap-product-badge">✓ Recommandé</div>
+                        <div class="recap-product-name">{{PRODUIT_NOM}}</div>
+                        <div class="recap-product-prices">
+                            <!--IF:HAS_REMISE--><span class="recap-price-old">{{PRIX_ORIGINAL}} €/m²</span><!--ENDIF:HAS_REMISE-->
+                            <span class="recap-price">{{PRIX}} €/m²</span>
+                            <!--IF:HAS_REMISE--><span class="recap-discount">-{{REMISE_PCT}}%</span><!--ENDIF:HAS_REMISE-->
+                        </div>
+                    </div>
+                </div>
+                <div class="recap-total-box">
+                    <div class="recap-total-label">Surface à couvrir</div>
+                    <div class="recap-total-surface">{{SURFACE}} m²</div>
+                    <div class="recap-total-label">Total estimé</div>
+                    <div class="recap-total-price">{{TOTAL}} €</div>
+                </div>
+            </div>
+            <!-- Infos client et configuration en bas -->
+            <div class="recap-info-row">
+                <div class="recap-info-card">
                     <div class="card-title">Vos informations</div>
                     <div class="info-row"><span class="info-label">Nom :</span><span class="info-value">{{NOM_COMPLET}}</span></div>
                     <!--IF:EMAIL--><div class="info-row"><span class="info-label">Email :</span><span class="info-value">{{EMAIL}}</span></div><!--ENDIF:EMAIL-->
                     <!--IF:TELEPHONE--><div class="info-row"><span class="info-label">Tél :</span><span class="info-value">{{TELEPHONE}}</span></div><!--ENDIF:TELEPHONE-->
                 </div>
-                <div class="card">
+                <div class="recap-info-card">
                     <div class="card-title">Votre configuration</div>
                     <div class="info-row"><span class="info-label">Forme :</span><span class="info-value">{{FORME}}</span></div>
                     <div class="info-row"><span class="info-label">Type de sol :</span><span class="info-value">{{TYPE_SOL}}</span></div>
                     <div class="info-row"><span class="info-label">Animaux :</span><span class="info-value">{{ANIMAUX_OUI_NON}}</span></div>
                     <!--IF:ANIMAUX--><div class="badge-animaux">🐾 Consignes animaux incluses</div><!--ENDIF:ANIMAUX-->
-                </div>
-            </div>
-            <div class="col-right">
-                <div class="product-card">
-                    <div class="product-badge">✓ Recommandé</div>
-                    <div class="product-subtitle">GAZON SYNTHÉTIQUE VERDEKO</div>
-                    <div class="product-name">{{PRODUIT_NOM}}</div>
-                    <!--IF:PRODUIT_IMAGE--><div class="product-image"><img src="{{PRODUIT_IMAGE}}" alt=""></div><!--ENDIF:PRODUIT_IMAGE-->
-                    <!--IF:HAS_REMISE--><div class="product-price-old">{{PRIX_ORIGINAL}} €</div><!--ENDIF:HAS_REMISE-->
-                    <div><span class="product-price">{{PRIX}} €/m²</span><!--IF:HAS_REMISE--><span class="product-discount">-{{REMISE_PCT}}%</span><!--ENDIF:HAS_REMISE--></div>
-                    <div class="product-surface">Surface : {{SURFACE}} m²</div>
-                    <div class="product-total">Total : {{TOTAL}} €</div>
                 </div>
             </div>
         </div>
@@ -638,26 +874,44 @@ body {
         <span class="page-num">2 / 10</span>
     </div>
     <div class="page-content">
-        <div class="surface-box">
-            <span class="surface-big">{{SURFACE_COMMANDER}} m²</span>
-            <span class="surface-label"> à commander</span>
-        </div>
-        <div class="orient-box">
-            <span class="orient-label">SENS DE POSE</span>
-            <span class="orient-btn {{ORIENT_H_CLASS}}">Horizontal</span>
-            <span class="orient-btn {{ORIENT_V_CLASS}}">Vertical</span>
-        </div>
-        <!--IF:SVG--><div class="svg-box">{{SVG_CALEPINAGE}}</div><!--ENDIF:SVG-->
-        <div class="card">
-            <div class="card-title">Rouleaux à commander</div>
-            <table class="rolls-table">
-                <thead><tr><th>Réf</th><th>Dimensions</th><th style="text-align:right;">Surface</th></tr></thead>
-                <tbody>{{ROULEAUX_ROWS}}</tbody>
-                <tfoot>
-                    <tr><td colspan="2">Surface à commander</td><td style="text-align:right;">{{TOTAL_M2}} m²</td></tr>
-                    <tr><td colspan="2">Chutes estimées</td><td style="text-align:right;">{{CHUTES_PCT}}%</td></tr>
-                </tfoot>
-            </table>
+        <div class="calep-layout">
+            <!-- Colonne gauche : SVG (2/3) -->
+            <div class="calep-svg-col">
+                <div class="calep-header">
+                    <span class="calep-surface">{{SURFACE_COMMANDER}} m²</span>
+                    <span class="calep-surface-label"> à commander</span>
+                    <div class="calep-orient">
+                        <span class="calep-orient-label">SENS DE POSE</span>
+                        <span class="calep-orient-btn {{ORIENT_H_CLASS}}">Horizontal</span>
+                        <span class="calep-orient-btn {{ORIENT_V_CLASS}}">Vertical</span>
+                    </div>
+                </div>
+                <!--IF:SVG--><div class="svg-container">{{SVG_CALEPINAGE}}</div><!--ENDIF:SVG-->
+            </div>
+            <!-- Colonne droite : Liste des lés (1/3) -->
+            <div class="calep-list-col">
+                <div class="calep-list-card">
+                    <div class="calep-list-title">Rouleaux à commander</div>
+                    <table class="calep-rolls-table">
+                        <thead><tr><th>Réf</th><th>Dimensions</th><th class="surface-col">m²</th></tr></thead>
+                        <tbody>{{ROULEAUX_ROWS}}</tbody>
+                    </table>
+                    <div class="calep-summary">
+                        <div class="calep-summary-row calep-summary-total">
+                            <span>Total</span>
+                            <span>{{TOTAL_M2}} m²</span>
+                        </div>
+                        <div class="calep-summary-row">
+                            <span>Chutes</span>
+                            <span>{{CHUTES_PCT}}%</span>
+                        </div>
+                        <!--IF:JONCTIONS--><div class="calep-summary-row">
+                            <span>Jonctions</span>
+                            <span>{{NB_JONCTIONS}}</span>
+                        </div><!--ENDIF:JONCTIONS-->
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <div class="page-footer">Verdeko - Guide d'installation personnalisé - www.verdeko.fr</div>
