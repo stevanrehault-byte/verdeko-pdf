@@ -290,7 +290,7 @@ function processTemplate(html, data) {
     const orientHClass = orientation === 'horizontal' ? 'orient-active' : 'orient-inactive';
     const orientVClass = orientation === 'vertical' ? 'orient-active' : 'orient-inactive';
     
-    // Générer le tableau des rouleaux
+    // Générer le tableau des rouleaux (format compact)
     let rouleauxRows = '';
     let totalM2 = 0;
     les.forEach((le, i) => {
@@ -302,8 +302,8 @@ function processTemplate(html, data) {
         totalM2 += s;
         rouleauxRows += `<tr>
             <td><span class="le-badge">${ref}</span></td>
-            <td>${q}x ${l.toFixed(0)}m × ${L.toFixed(2)}m</td>
-            <td style="text-align:right;">${s.toFixed(0)} m²</td>
+            <td>${q}× ${l.toFixed(0)}m × ${L.toFixed(1)}m</td>
+            <td class="surface-col">${s.toFixed(0)}</td>
         </tr>`;
     });
     
