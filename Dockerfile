@@ -1,33 +1,41 @@
 # Verdeko PDF Service - Railway
-# Dockerfile optimisé pour Puppeteer
+FROM node:20-slim
 
-FROM ghcr.io/puppeteer/puppeteer:23.4.1
+# Installer les dépendances Chrome
+RUN apt-get update && apt-get install -y \
+    chromium \
+    fonts-liberation \
+    libappindicator3-1 \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libcups2 \
+    libdbus-1-3 \
+    libgdk-pixbuf2.0-0 \
+    libnspr4 \
+    libnss3 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    xdg-utils \
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
 
-# Variables d'environnement
+# Variables Puppeteer
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 # Dossier de travail
 WORKDIR /app
 
-# Copier les fichiers package
+# Copier et installer les dépendances
 COPY package*.json ./
-
-# Installer les dépendances (en tant que root)
-USER root
 RUN npm install --omit=dev
 
-# Copier le reste des fichiers
+# Copier le reste
 COPY . .
 
-# Permissions
-RUN chown -R pptruser:pptruser /app
-
-# Revenir à l'utilisateur puppeteer
-USER pptruser
-
-# Port exposé (Railway définit PORT automatiquement)
 EXPOSE 3000
 
-# Commande de démarrage
 CMD ["node", "server.js"]
