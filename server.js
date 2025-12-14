@@ -1,7 +1,7 @@
 /**
- * Verdeko PDF Service v2.0
+ * Verdeko PDF Service v2.1
  * API Express + Puppeteer pour génération PDF
- * Optimisé pour Railway
+ * Optimisé pour Railway (mémoire limitée)
  */
 
 const express = require('express');
@@ -15,13 +15,7 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-    origin: [
-        'https://prodnative.fr',
-        'https://www.prodnative.fr',
-        'https://verdeko.fr',
-        'https://www.verdeko.fr',
-        /\.railway\.app$/
-    ],
+    origin: '*',
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -33,7 +27,7 @@ app.get('/health', (req, res) => {
         status: 'ok', 
         service: 'verdeko-pdf', 
         platform: 'railway',
-        version: '2.0.0',
+        version: '2.1.0',
         timestamp: new Date().toISOString()
     });
 });
@@ -42,46 +36,61 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
     res.json({ 
         service: 'Verdeko PDF Service',
-        version: '2.0.0',
+        version: '2.1.0',
         status: 'running',
         platform: 'Railway',
         endpoints: {
             health: 'GET /health',
             generate: 'POST /generate',
             test: 'POST /test'
-        },
-        usage: {
-            method: 'POST',
-            url: '/generate',
-            body: {
-                client: { prenom: 'string', nom: 'string', email: 'string', telephone: 'string' },
-                produit: { nom: 'string', prix: 'number', image: 'string' },
-                terrain: { forme: 'string', surface_brute: 'number' },
-                calepinage: { les: 'array', svg: 'string', orientation: 'string' },
-                questionnaire: { type_sol: 'string', animaux: 'string' }
-            }
         }
     });
 });
 
+// Configuration Puppeteer optimisée pour containers
+const PUPPETEER_OPTIONS = {
+    headless: true,
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
+    args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-extensions',
+        '--disable-background-networking',
+        '--disable-default-apps',
+        '--disable-sync',
+        '--disable-translate',
+        '--disable-software-rasterizer',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
+        '--disable-infobars',
+        '--window-size=1200,800',
+        '--hide-scrollbars',
+        '--mute-audio',
+        '--disable-web-security',
+        '--font-render-hinting=none'
+    ],
+    timeout: 60000
+};
+
 // Test endpoint (génère un PDF simple)
 app.post('/test', async (req, res) => {
     console.log('🧪 Test PDF demandé');
+    let browser = null;
+    
     try {
-        const browser = await puppeteer.launch({
-            headless: 'new',
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-gpu',
-                '--no-first-run',
-                '--no-zygote',
-                '--single-process'
-            ]
-        });
+        console.log('📦 Lancement Chromium...');
+        browser = await puppeteer.launch(PUPPETEER_OPTIONS);
+        console.log('✅ Chromium lancé');
         
         const page = await browser.newPage();
+        console.log('📄 Page créée');
+        
         await page.setContent(`
             <!DOCTYPE html>
             <html>
@@ -92,18 +101,33 @@ app.post('/test', async (req, res) => {
                 <p>Date: ${new Date().toLocaleString('fr-FR')}</p>
             </body>
             </html>
-        `);
+        `, { waitUntil: 'domcontentloaded' });
+        console.log('📝 Contenu chargé');
         
-        const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
+        const pdfBuffer = await page.pdf({ 
+            format: 'A4', 
+            printBackground: true,
+            margin: { top: '20mm', bottom: '20mm', left: '20mm', right: '20mm' }
+        });
+        console.log('📄 PDF généré, taille:', pdfBuffer.length);
+        
         await browser.close();
+        browser = null;
         
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'attachment; filename="verdeko-test.pdf"');
+        res.setHeader('Content-Length', pdfBuffer.length);
         res.send(pdfBuffer);
         
-        console.log('✅ Test PDF généré avec succès');
+        console.log('✅ Test PDF envoyé avec succès');
     } catch (error) {
-        console.error('❌ Erreur test:', error);
+        console.error('❌ Erreur test:', error.message);
+        console.error('Stack:', error.stack);
+        
+        if (browser) {
+            try { await browser.close(); } catch (e) { }
+        }
+        
         res.status(500).json({ error: error.message, stack: error.stack });
     }
 });
@@ -123,7 +147,6 @@ app.post('/generate', async (req, res) => {
             return res.status(400).json({ error: 'Données manquantes', received: typeof data });
         }
         
-        // Permettre des données minimales pour les tests
         if (!data.client && !data.terrain) {
             return res.status(400).json({ 
                 error: 'Données insuffisantes',
@@ -147,46 +170,23 @@ app.post('/generate', async (req, res) => {
         
         console.log('📝 Template traité, lancement Puppeteer...');
         
-        // Lancer Puppeteer avec options optimisées pour container
-        browser = await puppeteer.launch({
-            headless: 'new',
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-gpu',
-                '--no-first-run',
-                '--no-zygote',
-                '--single-process',
-                '--disable-extensions',
-                '--disable-background-networking',
-                '--disable-default-apps',
-                '--disable-sync',
-                '--disable-translate'
-            ],
-            timeout: 30000
-        });
+        // Lancer Puppeteer
+        browser = await puppeteer.launch(PUPPETEER_OPTIONS);
         
         const page = await browser.newPage();
         
         // Définir le viewport pour A4 paysage
         await page.setViewport({
-            width: 1122,  // 297mm en pixels à 96dpi
-            height: 793,  // 210mm en pixels à 96dpi
-            deviceScaleFactor: 2
+            width: 1122,
+            height: 793,
+            deviceScaleFactor: 1
         });
         
         // Charger le HTML
         await page.setContent(html, { 
-            waitUntil: ['networkidle0', 'domcontentloaded'],
+            waitUntil: 'domcontentloaded',
             timeout: 30000 
         });
-        
-        // Attendre que les fonts soient chargées
-        await page.evaluateHandle('document.fonts.ready');
-        
-        // Petit délai pour le rendu final
-        await new Promise(r => setTimeout(r, 500));
         
         // Générer le PDF
         const pdfBuffer = await page.pdf({
@@ -202,7 +202,7 @@ app.post('/generate', async (req, res) => {
         
         const duration = Date.now() - startTime;
         const clientName = data.client?.nom || data.client?.prenom || 'client';
-        console.log(`✅ PDF généré en ${duration}ms pour ${clientName}`);
+        console.log(`✅ PDF généré en ${duration}ms pour ${clientName} (${pdfBuffer.length} bytes)`);
         
         // Envoyer le PDF
         res.setHeader('Content-Type', 'application/pdf');
@@ -211,15 +211,10 @@ app.post('/generate', async (req, res) => {
         res.send(pdfBuffer);
         
     } catch (error) {
-        console.error('❌ Erreur génération PDF:', error);
+        console.error('❌ Erreur génération PDF:', error.message);
         
-        // S'assurer de fermer le browser en cas d'erreur
         if (browser) {
-            try {
-                await browser.close();
-            } catch (e) {
-                console.error('Erreur fermeture browser:', e);
-            }
+            try { await browser.close(); } catch (e) { }
         }
         
         res.status(500).json({ 
@@ -415,7 +410,7 @@ function sanitizeFilename(str) {
 
 // Démarrer le serveur
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Verdeko PDF Service v2.0 démarré`);
+    console.log(`🚀 Verdeko PDF Service v2.1 démarré`);
     console.log(`📍 Port: ${PORT}`);
     console.log(`🌍 Environnement: ${process.env.NODE_ENV || 'development'}`);
     console.log(`✅ Prêt à générer des PDFs!`);
