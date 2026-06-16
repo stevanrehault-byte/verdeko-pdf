@@ -422,7 +422,7 @@ function pProjet(){
             <div class="hp-sub">${eur(D.produit.prix_m2)} / m² · ${q.usage||'Premium'}</div>
             <div class="chips">${chips}</div>
           </div>
-          <div class="hp-price"><div class="k">Total estimé</div><div class="v">${eur(TOTAL)}</div><div class="kk">${m2(SURF)} · livraison offerte</div></div>
+          <div class="hp-price"><div class="k">Total estimé</div><div class="v">${eur(TOTAL)}</div><div class="kk">${(D.meta && Number(D.meta.total_global)>0) ? m2(SURF)+' · accessoires inclus · livraison offerte' : m2(SURF)+' · livraison offerte'}</div></div>
         </div>
         <div class="grid-4">
           <div class="stat"><div class="v">${m2(SURF)}</div><div class="l">Surface</div></div>
@@ -894,6 +894,8 @@ function normalize(){
   D.meta = (D.meta && typeof D.meta==='object') ? D.meta : {};
   if(!D.meta.date) D.meta.date = new Date().toLocaleDateString('fr-FR');
   if(D.meta.ref==null) D.meta.ref='';
+  D.meta.total_global = parseFloat(D.meta.total_global || 0) || 0;
+  D.meta.total_accessoires = parseFloat(D.meta.total_accessoires || 0) || 0;
   function bad(v){ return v==null || v==='undefined' || v==='null' || (''+v).trim()===''; }
   D.client = D.client || {};
   ['prenom','nom','nom_complet','email','telephone'].forEach(function(k){ if(bad(D.client[k])) D.client[k]=''; });
@@ -934,7 +936,7 @@ function paint(){
   try{
     normalize();
     SURF = D.terrain.surface_brute || D.terrain.surface_nette || 0;
-    TOTAL = SURF * D.produit.prix_m2;
+    TOTAL = (D.meta && Number(D.meta.total_global) > 0) ? Number(D.meta.total_global) : SURF * D.produit.prix_m2;
     document.getElementById('app').innerHTML =
       [pCover(),pProjet(),pPlan(),pOrdrePose(),pMateriel(),pSol(),pPose(),pJonctions(),pFixation(),pConseils(),pEntretien(),pAccessoires(),pEnd()].join('');
   }catch(e){
