@@ -44,8 +44,8 @@ svg.ic{stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;strok
 .pg-head .pn{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.05em}
 .pg-head .pn b{color:var(--slate-d)}
 .pg-rule{height:1px;background:var(--line);margin:9px 15mm 0}
-.pg-body{flex:1;padding:7mm 15mm 0;display:flex;flex-direction:column;min-height:0;overflow:hidden}
-.pg-foot{display:flex;align-items:flex-end;justify-content:space-between;padding:0 15mm 10mm;margin-top:auto}
+.pg-body{flex:1;padding:7mm 15mm 16mm;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.pg-foot{position:absolute;bottom:0;left:0;right:0;display:flex;align-items:flex-end;justify-content:space-between;padding:0 15mm 9mm}
 .pg-foot .fl{font-size:11.5px;color:var(--muted);letter-spacing:.005em}
 .pg-foot .fl .fg{color:var(--green-700);font-weight:700}
 .pg-foot .fr{font-size:11px;color:var(--muted);font-weight:600}
@@ -846,13 +846,15 @@ function normalize(){
   D.meta = (D.meta && typeof D.meta==='object') ? D.meta : {};
   if(!D.meta.date) D.meta.date = new Date().toLocaleDateString('fr-FR');
   if(D.meta.ref==null) D.meta.ref='';
+  function bad(v){ return v==null || v==='undefined' || v==='null' || (''+v).trim()===''; }
   D.client = D.client || {};
+  ['prenom','nom','nom_complet','email','telephone'].forEach(function(k){ if(bad(D.client[k])) D.client[k]=''; });
   if(!D.client.nom_complet) D.client.nom_complet = ((D.client.prenom||'')+' '+(D.client.nom||'')).trim() || 'Client';
   D.terrain = D.terrain || {};
   D.terrain.dimensions = D.terrain.dimensions || {};
   if(!D.terrain.forme) D.terrain.forme = 'Personnalisee';
   D.produit = D.produit || {};
-  if(!D.produit.nom) D.produit.nom = 'Gazon synthetique';
+  if(bad(D.produit.nom)) D.produit.nom = 'Gazon synthétique';
   D.produit.prix_m2 = parseFloat(D.produit.prix_m2 || D.produit.prix || 0) || 0;
   if(!D.produit.image_cover) D.produit.image_cover = D.produit.image || '';
   D.calepinage = D.calepinage || {};
