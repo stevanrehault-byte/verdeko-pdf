@@ -1,7 +1,10 @@
 /**
- * Verdeko PDF Service v3.1.0
+ * Verdeko PDF Service v3.2.0
  * API Express + Puppeteer pour génération PDF
  * Optimisé pour Railway
+ *
+ * V3.2.0 : Fix timeout — waitUntil 'domcontentloaded' + bounded image/font loading
+ *          (networkidle0 bloquait sur ressources externes lentes)
  */
 
 const express = require('express');
@@ -29,20 +32,20 @@ app.use(express.json({ limit: '10mb' }));
 
 // Health check
 app.get('/health', (req, res) => {
-    res.json({ 
-        status: 'ok', 
-        service: 'verdeko-pdf', 
+    res.json({
+        status: 'ok',
+        service: 'verdeko-pdf',
         platform: 'railway',
-        version: '3.1.0',
+        version: '3.2.0',
         timestamp: new Date().toISOString()
     });
 });
 
 // Page d'accueil
 app.get('/', (req, res) => {
-    res.json({ 
+    res.json({
         service: 'Verdeko PDF Service',
-        version: '3.1.0',
+        version: '3.2.0',
         status: 'running',
         platform: 'Railway',
         endpoints: {
@@ -80,7 +83,7 @@ app.post('/test', async (req, res) => {
                 '--single-process'
             ]
         });
-        
+
         const page = await browser.newPage();
         await page.setContent(`
             <!DOCTYPE html>
@@ -93,14 +96,14 @@ app.post('/test', async (req, res) => {
             </body>
             </html>
         `);
-        
+
         const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
         await browser.close();
-        
+
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'attachment; filename="verdeko-test.pdf"');
         res.send(pdfBuffer);
-        
+
         console.log('✅ Test PDF généré avec succès');
     } catch (error) {
         console.error('❌ Erreur test:', error);
@@ -112,26 +115,26 @@ app.post('/test', async (req, res) => {
 app.post('/generate', async (req, res) => {
     console.log('📄 Nouvelle demande de génération PDF');
     const startTime = Date.now();
-    
+
     let browser = null;
-    
+
     try {
         const data = req.body;
-        
+
         // Validation
         if (!data) {
             return res.status(400).json({ error: 'Données manquantes', received: typeof data });
         }
-        
+
         // Permettre des données minimales pour les tests
         if (!data.client && !data.terrain) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 error: 'Données insuffisantes',
                 required: ['client ou terrain'],
                 received: Object.keys(data)
             });
         }
-        
+
         // Diagnostic : que reçoit-on vraiment ? (à retirer plus tard)
         console.log('[data] quest=' + JSON.stringify(data.questionnaire || {})
             + ' | img=' + ((data.produit || {}).image || '\u2205')
@@ -142,20 +145,20 @@ app.post('/generate', async (req, res) => {
 
         // Charger le template
         const templatePath = path.join(__dirname, 'template.html');
-        
+
         if (!fs.existsSync(templatePath)) {
             console.error('❌ Template non trouvé:', templatePath);
             return res.status(500).json({ error: 'Template HTML non trouvé' });
         }
-        
+
         let html = fs.readFileSync(templatePath, 'utf8');
 
         // V3 : injection des données — le rendu se fait dans le template (JS)
         const payload = JSON.stringify(data).replace(/</g, '\\u003c');
         html = html.replace('</head>', '<script>window.VERDEKO_PDF_DATA = ' + payload + ';<\/script></head>');
-        
+
         console.log('📝 Template traité, lancement Puppeteer...');
-        
+
         // Lancer Puppeteer avec options optimisées pour container
         browser = await puppeteer.launch({
             headless: 'new',
@@ -175,7 +178,7 @@ app.post('/generate', async (req, res) => {
             ],
             timeout: 30000
         });
-        
+
         const page = await browser.newPage();
 
         // Capture des erreurs/logs navigateur (diagnostic)
@@ -188,23 +191,57 @@ app.post('/generate', async (req, res) => {
             height: 793,  // 210mm en pixels à 96dpi
             deviceScaleFactor: 2
         });
-        
-        // Charger le HTML
-        await page.setContent(html, { 
-            waitUntil: ['networkidle0', 'domcontentloaded'],
-            timeout: 30000 
-        });
-        
-        // Attendre la fin du rendu du template (V6 pose ce flag)
-        await page.waitForFunction('window.__verdekoReady === true', { timeout: 15000 })
-            .catch(() => console.warn('\u26A0\uFE0F __verdekoReady non détecté, on continue'));
 
-        // Attendre que les fonts soient chargées
-        await page.evaluateHandle('document.fonts.ready');
-        
+        // ============================================================
+        // V3.2.0 FIX: waitUntil 'domcontentloaded' seulement
+        // networkidle0 bloquait sur TOUTES les ressources externes
+        // (images, fonts, etc.) — si une seule hang, timeout 30s
+        // ============================================================
+        await page.setContent(html, {
+            waitUntil: 'domcontentloaded',
+            timeout: 30000
+        });
+
+        // ============================================================
+        // V3.2.0: Bounded image loading (max 6s)
+        // Attend que les images soient chargées, avec timeout de sécurité
+        // ============================================================
+        await page.evaluate(() => new Promise(resolve => {
+            const imgs = Array.from(document.images);
+            let pending = imgs.filter(i => !i.complete).length;
+
+            if (!pending) return resolve();
+
+            const done = () => {
+                if (--pending <= 0) resolve();
+            };
+
+            imgs.forEach(i => {
+                if (!i.complete) {
+                    i.addEventListener('load', done);
+                    i.addEventListener('error', done);
+                }
+            });
+
+            // Timeout de sécurité : 6 secondes max
+            setTimeout(resolve, 6000);
+        })).catch(() => console.warn('⚠️ Image loading timeout (continue anyway)'));
+
+        // ============================================================
+        // V3.2.0: Bounded font loading (max 3s)
+        // ============================================================
+        await page.evaluate(() => Promise.race([
+            document.fonts.ready,
+            new Promise(r => setTimeout(r, 3000))
+        ])).catch(() => console.warn('⚠️ Font loading timeout (continue anyway)'));
+
+        // Attendre la fin du rendu du template (V6 pose ce flag)
+        await page.waitForFunction('window.__verdekoReady === true', { timeout: 10000 })
+            .catch(() => console.warn('⚠️ __verdekoReady non détecté, on continue'));
+
         // Petit délai pour le rendu final
-        await new Promise(r => setTimeout(r, 500));
-        
+        await new Promise(r => setTimeout(r, 300));
+
         // Générer le PDF
         const pdfBuffer = await page.pdf({
             format: 'A4',
@@ -213,23 +250,23 @@ app.post('/generate', async (req, res) => {
             margin: { top: 0, right: 0, bottom: 0, left: 0 },
             preferCSSPageSize: false
         });
-        
+
         await browser.close();
         browser = null;
-        
+
         const duration = Date.now() - startTime;
         const clientName = data.client?.nom || data.client?.prenom || 'client';
         console.log(`✅ PDF généré en ${duration}ms pour ${clientName}`);
-        
+
         // Envoyer le PDF
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="verdeko-guide-${sanitizeFilename(clientName)}.pdf"`);
         res.setHeader('Content-Length', pdfBuffer.length);
         res.send(pdfBuffer);
-        
+
     } catch (error) {
         console.error('❌ Erreur génération PDF:', error);
-        
+
         // S'assurer de fermer le browser en cas d'erreur
         if (browser) {
             try {
@@ -238,8 +275,8 @@ app.post('/generate', async (req, res) => {
                 console.error('Erreur fermeture browser:', e);
             }
         }
-        
-        res.status(500).json({ 
+
+        res.status(500).json({
             error: error.message,
             type: error.name,
             duration: Date.now() - startTime
@@ -267,8 +304,9 @@ function sanitizeFilename(str) {
 
 // Démarrer le serveur
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Verdeko PDF Service v3.1.0 démarré`);
+    console.log(`🚀 Verdeko PDF Service v3.2.0 démarré`);
     console.log(`📍 Port: ${PORT}`);
     console.log(`🌍 Environnement: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`✅ Fix V3.2.0: waitUntil domcontentloaded + bounded image/font loading`);
     console.log(`✅ Prêt à générer des PDFs!`);
 });
