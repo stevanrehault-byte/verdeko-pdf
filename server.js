@@ -1,5 +1,5 @@
 /**
- * Verdeko PDF Service v3.0.3
+ * Verdeko PDF Service v3.1.0
  * API Express + Puppeteer pour génération PDF
  * Optimisé pour Railway
  */
@@ -33,7 +33,7 @@ app.get('/health', (req, res) => {
         status: 'ok', 
         service: 'verdeko-pdf', 
         platform: 'railway',
-        version: '3.0.3',
+        version: '3.1.0',
         timestamp: new Date().toISOString()
     });
 });
@@ -42,7 +42,7 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
     res.json({ 
         service: 'Verdeko PDF Service',
-        version: '3.0.3',
+        version: '3.1.0',
         status: 'running',
         platform: 'Railway',
         endpoints: {
@@ -267,7 +267,7 @@ function sanitizeFilename(str) {
 
 // Démarrer le serveur
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Verdeko PDF Service v3.0.3 démarré`);
+    console.log(`🚀 Verdeko PDF Service v3.1.0 démarré`);
     console.log(`📍 Port: ${PORT}`);
     console.log(`🌍 Environnement: ${process.env.NODE_ENV || 'development'}`);
     console.log(`✅ Prêt à générer des PDFs!`);
