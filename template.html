@@ -337,8 +337,8 @@ function eur(n){ return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:
 function m2(n){ return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2})+' m²'; }
 function cap(s){ return s? s.charAt(0).toUpperCase()+s.slice(1):''; }
 function nb(n){ return String(n).replace('.',','); }
-let SURF = D.terrain.surface_brute || D.terrain.surface_nette;
-let TOTAL = SURF * D.produit.prix_m2;
+let SURF = 0;   // (re)calcule dans paint() apres normalize()
+let TOTAL = 0;
 function lesRefs(){ const out=[]; D.calepinage.les.forEach(le=>{ const r=(le.leRefs&&le.leRefs.length)?le.leRefs:[le.ref]; r.forEach(x=>out.push({ref:x,largeur:le.largeur,longueur:le.longueur})); }); return out; }
 
 function head(idx,section){
@@ -450,7 +450,11 @@ function samplePlanSVG(){
   </svg>`;
 }
 function pPlan(){
-  const planInner = (D.calepinage.svg && D.calepinage.svg.indexOf('<svg')!==-1) ? D.calepinage.svg : samplePlanSVG();
+  const realSvg = (D.calepinage.svg && D.calepinage.svg.indexOf('<svg')!==-1);
+  const planInner = realSvg ? D.calepinage.svg
+    : (window.VERDEKO_PDF_DATA
+        ? '<div style="color:var(--muted);font-size:13px;text-align:center;padding:30px">Plan de pose en cours de calcul.</div>'
+        : samplePlanSVG());
   const rolls = D.calepinage.les.map(le=>{ const q=le.quantite||1; const s=le.largeur*le.longueur*q;
     return `<tr><td><span class="tag">${le.ref}</span></td><td>${q>1?q+'× ':'1× '}${le.largeur} m × ${Number(le.longueur).toFixed(1)} m</td><td class="r">${m2(s)}</td></tr>`; }).join('');
   const body=`
@@ -838,17 +842,49 @@ function pEnd(){
    window.VERDEKO_PDF_DATA est injecté par le service avant </head>.
    En l'absence d'injection, le DATA d'exemple sert d'aperçu autonome.
    ==================================================================== */
-function paint(){
-  if(!D.meta || typeof D.meta!=='object') D.meta={};
+function normalize(){
+  D.meta = (D.meta && typeof D.meta==='object') ? D.meta : {};
   if(!D.meta.date) D.meta.date = new Date().toLocaleDateString('fr-FR');
   if(D.meta.ref==null) D.meta.ref='';
-  SURF = D.terrain.surface_brute || D.terrain.surface_nette;
-  TOTAL = SURF * D.produit.prix_m2;
-  document.getElementById('app').innerHTML =
-    [pCover(),pProjet(),pPlan(),pMateriel(),pSol(),pPose(),pJonctions(),pFixation(),pEntretien(),pAccessoires(),pEnd()].join('');
+  D.client = D.client || {};
+  if(!D.client.nom_complet) D.client.nom_complet = ((D.client.prenom||'')+' '+(D.client.nom||'')).trim() || 'Client';
+  D.terrain = D.terrain || {};
+  D.terrain.dimensions = D.terrain.dimensions || {};
+  if(!D.terrain.forme) D.terrain.forme = 'Personnalisee';
+  D.produit = D.produit || {};
+  if(!D.produit.nom) D.produit.nom = 'Gazon synthetique';
+  D.produit.prix_m2 = parseFloat(D.produit.prix_m2 || D.produit.prix || 0) || 0;
+  if(!D.produit.image_cover) D.produit.image_cover = D.produit.image || '';
+  D.calepinage = D.calepinage || {};
+  D.calepinage.les = Array.isArray(D.calepinage.les) ? D.calepinage.les : [];
+  if(!D.calepinage.orientation) D.calepinage.orientation = 'horizontal';
+  D.calepinage.chutes_percent = D.calepinage.chutes_percent || 0;
+  D.calepinage.nb_jonctions = (D.calepinage.nb_jonctions!=null) ? D.calepinage.nb_jonctions : Math.max(0, D.calepinage.les.length-1);
+  D.calepinage.nb_les = D.calepinage.nb_les || D.calepinage.les.reduce((n,le)=>n+(parseInt(le.quantite||1)),0) || D.calepinage.les.length;
+  D.questionnaire = D.questionnaire || {};
+  D.accessoires = D.accessoires || {};
+  var g = D.accessoires.geotextile = D.accessoires.geotextile || {}; g.m2=g.m2||0; g.rouleaux=g.rouleaux||0; g.description=g.description||'';
+  var b = D.accessoires.bande_jonction = D.accessoires.bande_jonction || {}; b.ml=b.ml||0; b.unites=b.unites||0; b.description=b.description||'';
+  var p = D.accessoires.pointes = D.accessoires.pointes || {}; p.boites=p.boites||0; p.description=p.description||'';
+}
+function paint(){
+  if (window.VERDEKO_PDF_DATA) D = window.VERDEKO_PDF_DATA;
+  try{
+    normalize();
+    SURF = D.terrain.surface_brute || D.terrain.surface_nette || 0;
+    TOTAL = SURF * D.produit.prix_m2;
+    document.getElementById('app').innerHTML =
+      [pCover(),pProjet(),pPlan(),pMateriel(),pSol(),pPose(),pJonctions(),pFixation(),pEntretien(),pAccessoires(),pEnd()].join('');
+  }catch(e){
+    console.error('[Verdeko PDF] Erreur de rendu:', (e && e.message) || e, e && e.stack);
+    document.getElementById('app').innerHTML =
+      '<div class="page"><div class="pg-body" style="display:flex;align-items:center;justify-content:center;text-align:center">'+
+      '<div><div style="font-size:20px;font-weight:700;color:#23454f">Guide en cours de preparation</div>'+
+      '<div style="color:#6b7770;margin-top:10px;font-size:13px;max-width:420px">Une information de votre projet est manquante. Notre equipe vous recontacte rapidement.</div></div>'+
+      '</div></div>';
+  }
   window.__verdekoReady = true;
 }
-if (window.VERDEKO_PDF_DATA) D = window.VERDEKO_PDF_DATA;
 paint();
 
 </script>
