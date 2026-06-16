@@ -1,5 +1,5 @@
 /**
- * Verdeko PDF Service v3.0
+ * Verdeko PDF Service v3.0.1
  * API Express + Puppeteer pour génération PDF
  * Optimisé pour Railway
  */
@@ -33,7 +33,7 @@ app.get('/health', (req, res) => {
         status: 'ok', 
         service: 'verdeko-pdf', 
         platform: 'railway',
-        version: '3.0.0',
+        version: '3.0.1',
         timestamp: new Date().toISOString()
     });
 });
@@ -42,7 +42,7 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
     res.json({ 
         service: 'Verdeko PDF Service',
-        version: '3.0.0',
+        version: '3.0.1',
         status: 'running',
         platform: 'Railway',
         endpoints: {
@@ -169,7 +169,11 @@ app.post('/generate', async (req, res) => {
         });
         
         const page = await browser.newPage();
-        
+
+        // Capture des erreurs/logs navigateur (diagnostic)
+        page.on('pageerror', e => console.error('[browser pageerror]', e.message));
+        page.on('console', m => { const t = m.type(); if (t === 'error' || t === 'warning') console.log('[browser ' + t + ']', m.text()); });
+
         // Définir le viewport pour A4 paysage
         await page.setViewport({
             width: 1122,  // 297mm en pixels à 96dpi
@@ -255,7 +259,7 @@ function sanitizeFilename(str) {
 
 // Démarrer le serveur
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Verdeko PDF Service v3.0 démarré`);
+    console.log(`🚀 Verdeko PDF Service v3.0.1 démarré`);
     console.log(`📍 Port: ${PORT}`);
     console.log(`🌍 Environnement: ${process.env.NODE_ENV || 'development'}`);
     console.log(`✅ Prêt à générer des PDFs!`);
