@@ -105,6 +105,12 @@ svg.ic{stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;strok
 .chk>svg.ic{width:18px;height:18px;stroke:var(--green-600);flex:none}
 .chk .s{color:var(--muted);font-size:11.5px;margin-left:auto;font-weight:600}
 .chk b{font-weight:700}
+.tool-list{display:flex;flex-direction:column}
+.tool-line{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line-2)}
+.tool-line:last-child{border-bottom:none}
+.tool-line>svg.ic{width:18px;height:18px;stroke:var(--green-600);flex:none}
+.tool-line .tl-name{font-size:13.5px;color:var(--ink);font-weight:600;flex:1;line-height:1.3}
+.tool-line .tl-tag{font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);background:var(--paper-2);border:1px solid var(--line);border-radius:99px;padding:3px 10px;flex:none;white-space:nowrap}
 
 /* lignes */
 .row{display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:#fff;box-shadow:var(--sh-sm)}
@@ -511,7 +517,7 @@ function pMateriel(){
     [svg('tool'),D.questionnaire.is_sol_meuble?'Plaque vibrante':'Aspirateur / souffleur','location'],
     [svg('trowel'),'Brouette, pelle, râteau',''],
     [svg('shield'),'Gants de protection','']
-  ].map(m=>`<div class="chk">${m[0]}<span>${m[1]}</span>${m[2]?'<span class="s">'+m[2]+'</span>':''}</div>`).join('');
+  ].map(m=>`<div class="tool-line">${m[0]}<span class="tl-name">${m[1]}</span>${m[2]?'<span class="tl-tag">'+m[2]+'</span>':''}</div>`).join('');
   const fourn=[
     [svg('grid'),D.produit.nom, m2(SURF)+' — '+D.calepinage.nb_les+' lés à découper'],
     [svg('layers'),'Géotextile anti-repousse', a.geotextile.m2+' m² ('+a.geotextile.rouleaux+' rouleaux de 25 m)'],
@@ -526,7 +532,7 @@ function pMateriel(){
     <div class="grid-2" style="margin-top:16px;align-items:start">
       <div class="card card-pad">
         <div class="card-h"><div class="ci">${svg('tool')}</div><h3>Outils à prévoir</h3></div>
-        <div class="checks" style="grid-template-columns:1fr 1fr;gap:13px 22px">${matos}</div>
+        <div class="tool-list">${matos}</div>
       </div>
       <div class="card card-pad">
         <div class="card-h"><div class="ci">${svg('pkg')}</div><h3>Fournitures de votre projet</h3></div>
@@ -618,27 +624,28 @@ function orientSVG(){
     <text x="150" y="162" font-family="sans-serif" font-size="10.5" font-weight="700" fill="#a87b14">Votre terrasse</text>
   </svg>`;
 }
+function planForOrientation(){
+  return (D.calepinage.svg && D.calepinage.svg.indexOf('<svg')!==-1) ? D.calepinage.svg : samplePlanSVG();
+}
 function pPose(){
   const refs=lesRefs();
   const flow=refs.map((r,i)=>`<div class="fi"><span class="n">${i+1}</span><div><div class="lt">${r.ref}</div><div class="ld">${r.largeur} m × ${Number(r.longueur).toFixed(1)} m</div></div></div>`).join('<svg class="ic ar" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>');
   const body=`
     <div class="eyebrow">Étape 2 sur 4</div>
     <h2 class="h-sec">Pose <span class="hl-mark">du gazon</span></h2>
-    <p class="lead">Déroulez chaque lé dans l'ordre du plan, en respectant strictement le sens des brins. Laissez le gazon s'acclimater avant la fixation.</p>
+    <p class="lead">Déroulez chaque lé dans l'ordre du plan, en respectant strictement le sens des brins. Orientez-les tous vers votre <b>point de vue principal</b> (la pastille dorée du plan) : le rendu est plus dense et naturel.</p>
 
-    <div class="grid-2" style="margin-top:14px;align-items:start">
-      <div class="card card-pad">
-        <div class="card-h"><div class="ci">${svg('eye')}</div><h3>Orientation des brins</h3></div>
-        <p class="soft" style="font-size:12.5px;line-height:1.55;margin-bottom:6px">Orientez tous les brins vers votre <b style="color:var(--ink)">point de vue principal</b> (terrasse, baie vitrée) : rendu plus dense et naturel. Essai à blanc avant fixation.</p>
-        <div class="diagram" style="height:128px">${orientSVG()}</div>
-      </div>
-      <div class="card card-pad">
-        <div class="card-h"><div class="ci">${svg('scissors')}</div><h3>Technique de découpe</h3></div>
-        <div class="steps">
-          <div class="step"><div class="nb">1</div><div class="st-b"><div class="t">Découpez côté envers</div><div class="d">Toujours sur le dos (latex), jamais sur les brins. Suivez les lignes de couture.</div></div></div>
-          <div class="step"><div class="nb">2</div><div class="st-b"><div class="t">Lame neuve, traits francs</div><div class="d">Changez la lame dès qu'elle accroche : une lame émoussée déchire le support.</div></div></div>
-          <div class="step"><div class="nb">3</div><div class="st-b"><div class="t">Retirez les lisières d'usine</div><div class="d">Recoupez le bord sans brins sur les côtés à jointer pour un raccord invisible.</div></div></div>
-        </div>
+    <div class="card card-pad" style="margin-top:14px;display:flex;flex-direction:column;flex:1;min-height:0">
+      <div class="card-h"><div class="ci">${svg('eye')}</div><h3>Orientation des brins — votre plan</h3><span class="meta">Sens : ${cap(D.calepinage.orientation)}</span></div>
+      <div class="diagram" style="flex:1;min-height:0;border:1.5px solid var(--line);border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:12px">${planForOrientation()}</div>
+    </div>
+
+    <div class="card card-pad" style="margin-top:14px">
+      <div class="card-h"><div class="ci">${svg('scissors')}</div><h3>Technique de découpe</h3></div>
+      <div class="grid-3" style="gap:20px">
+        <div class="step"><div class="nb">1</div><div class="st-b"><div class="t">Découpez côté envers</div><div class="d">Toujours sur le dos (latex), jamais sur les brins. Suivez les lignes de couture.</div></div></div>
+        <div class="step"><div class="nb">2</div><div class="st-b"><div class="t">Lame neuve, traits francs</div><div class="d">Changez la lame dès qu'elle accroche : une lame émoussée déchire le support.</div></div></div>
+        <div class="step"><div class="nb">3</div><div class="st-b"><div class="t">Retirez les lisières d'usine</div><div class="d">Recoupez le bord sans brins sur les côtés à jointer pour un raccord invisible.</div></div></div>
       </div>
     </div>
 `;
@@ -796,13 +803,7 @@ function pAccessoires(){
     <p class="lead">Quantités calculées automatiquement à partir de votre surface, de votre type de sol et du nombre de jonctions de votre plan.</p>
 
     <div style="display:flex;flex-direction:column;gap:12px;margin-top:18px">${rows}</div>
-    <div class="callout info" style="margin-top:18px">${ck()}<div class="ct"><b>Bon à savoir.</b> Le géotextile est recommandé sur sol meuble. La bande de jonction et la colle ne sont nécessaires que si votre plan comporte des raccords entre lés.</div></div>
-
-    <div class="grid-3" style="margin-top:auto;padding-top:18px">
-      <div class="feat"><div class="fi">${svg('shield')}</div><div class="ft">Garantie 15 ans</div><div class="fd">UV & usure normale</div></div>
-      <div class="feat"><div class="fi">${svg('truck')}</div><div class="ft">Livraison offerte</div><div class="fd">France entière</div></div>
-      <div class="feat"><div class="fi">${svg('star')}</div><div class="ft">Gazon premium</div><div class="fd">Qualité paysagiste</div></div>
-    </div>`;
+    <div class="callout info" style="margin-top:18px">${ck()}<div class="ct"><b>Bon à savoir.</b> Le géotextile est recommandé sur sol meuble. La bande de jonction et la colle ne sont nécessaires que si votre plan comporte des raccords entre lés.</div></div>`;
   return page(12,'Accessoires & quantités',body);
 }
 
@@ -860,7 +861,7 @@ function pEnd(){
       <img class="logo" src="${LOGO}" alt="Verdeko">
       <div class="spacer"></div>
       <div class="eyebrow">Votre projet prend forme</div>
-      <h2>Bonne installation,<br>${D.client.prenom||'et à bientôt'} !</h2>
+      <h2>Bonne installation,<br><span style="color:var(--green-600)">${D.client.prenom||'et à bientôt'}</span> !</h2>
       <p>Votre dossier est prêt. Suivez les étapes dans l'ordre, prenez votre temps sur la préparation du sol et les jonctions : c'est la clé d'un rendu parfait. Notre équipe reste à votre disposition.</p>
       <div class="band">
         <div class="b">${svg('shield')}<div><div class="bt">Garantie 15 ans</div><div class="bd">UV & usure normale</div></div></div>
