@@ -34,7 +34,7 @@ svg.ic{stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;strok
 /* ===== EN-TETE / PIED ===== */
 .pg-head{display:flex;align-items:center;justify-content:space-between;padding:11mm 15mm 0}
 .pg-head .hl{display:flex;align-items:center;gap:14px}
-.pg-head .lg{height:28px;width:auto;display:block}
+.pg-head .lg{height:34px;width:auto;display:block}
 .pg-head .hsep{width:1px;height:19px;background:var(--line)}
 .pg-head .ht{font-size:12.5px;font-weight:700;color:var(--slate-d);letter-spacing:.005em}
 .pg-head .hr{display:flex;align-items:center;gap:12px}
@@ -170,7 +170,7 @@ svg.ic{stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;strok
 .kv:last-child{border-bottom:none}
 .kv .k{color:var(--muted)} .kv .v{font-weight:700;color:var(--ink)}
 .toc{display:grid}
-.toc .ti{display:flex;align-items:center;gap:13px;padding:11px 0;border-bottom:1px solid var(--line-2);font-size:13px}
+.toc .ti{display:flex;align-items:center;gap:13px;padding:7px 0;border-bottom:1px solid var(--line-2);font-size:13px}
 .toc .ti:last-child{border-bottom:none}
 .toc .ti .tn{font-size:11px;font-weight:700;color:#fff;background:var(--green-500);width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex:none}
 .toc .ti .tt{flex:1;font-weight:700;color:var(--ink)}
@@ -184,7 +184,7 @@ svg.ic{stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;strok
 .cover{flex-direction:row;padding:0;background:#1c3a43}
 .cover{flex-direction:row;padding:0;background:#fff}
 .cover .cnt{width:67%;background:#fff;color:var(--ink);padding:20mm 18mm;display:flex;flex-direction:column;position:relative}
-.cover .cnt .logo{height:42px;width:auto;display:block;align-self:flex-start;object-fit:contain;flex:none}
+.cover .cnt .logo{height:56px;width:auto;display:block;align-self:flex-start;object-fit:contain;flex:none}
 .cover .cnt .spacer{flex:1}
 .cover .cnt .eyebrow{color:var(--gold-d)}.cover .cnt .eyebrow::before{background:var(--gold)}
 .cover .cnt h1{font-size:48px;font-weight:700;line-height:1.03;letter-spacing:-.02em;color:var(--slate-d);margin-top:16px}
@@ -209,7 +209,7 @@ svg.ic{stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;strok
 /* ====== FIN ====== */
 .end{flex-direction:row;padding:0;background:#fff}
 .end .cnt{width:67%;background:#fff;color:var(--ink);padding:20mm 18mm;display:flex;flex-direction:column}
-.end .cnt .logo{height:42px;width:auto;display:block;align-self:flex-start;object-fit:contain;flex:none}
+.end .cnt .logo{height:56px;width:auto;display:block;align-self:flex-start;object-fit:contain;flex:none}
 .end .cnt .spacer{flex:1}
 .end .eyebrow{color:var(--gold-d)}.end .eyebrow::before{background:var(--gold)}
 .end h2{font-size:46px;font-weight:700;color:var(--slate-d);margin-top:15px;letter-spacing:-.02em;line-height:1.04}
@@ -256,6 +256,18 @@ svg.ic{stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;strok
 .devbar button:hover{background:var(--green-50)}
 .devbar button.on{background:var(--green-500);color:#fff}
 @media print{.devbar{display:none!important}}
+
+/* Ordre de pose (page dediee) */
+.ord-grid{display:flex;flex-wrap:wrap;gap:12px}
+.ord-card{flex:0 0 auto;min-width:148px;display:flex;align-items:center;gap:11px;background:var(--cream,#faf7f2);border:1px solid var(--cream-bd,#ECE6DC);border-radius:12px;padding:11px 15px}
+.ord-card .ord-n{width:30px;height:30px;border-radius:50%;background:var(--green-600);color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;flex:none}
+.ord-ref{font-size:14px;font-weight:700;color:var(--ink)}
+.ord-dim{font-size:12px;color:var(--muted);margin-top:1px}
+/* 4 erreurs */
+.err{display:flex;gap:11px;align-items:flex-start}
+.err-n{width:24px;height:24px;border-radius:50%;background:#d9534f;color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none;margin-top:1px}
+.err-t{font-size:13.5px;font-weight:700;color:var(--ink)}
+.err-d{font-size:12px;color:var(--muted);line-height:1.5;margin-top:2px}
 </style>
 </head>
 <body>
@@ -292,7 +304,7 @@ const DATA = window.VERDEKO_PDF_DATA || {
     pointes:{ boites:1, description:"Fixation du périmètre" },
     enzyme:{ bouteilles:2, description:"Neutralise les odeurs animales" } }
 };
-const TOTAL_PAGES = 11;
+const TOTAL_PAGES = 13;
 
 /* icones */
 const I = {
@@ -383,9 +395,10 @@ function pProjet(){
     ['Animaux',q.has_animaux?'Oui':'Non']
   ].map(c=>`<span class="chip"><span class="k">${c[0]}</span>${c[1]}</span>`).join('');
   const toc=[
-    ['1','Votre projet','02'],['2','Plan de pose optimisé','03'],['3','Matériel & préparation','04'],
-    ['4','Préparation du sol','05'],['5','Pose du gazon','06'],['6','Jonctions','07'],
-    ['7','Fixation & brossage','08'],['8','Entretien & garantie','09'],['9','Accessoires','10']
+    ['1','Votre projet','02'],['2','Plan de pose optimisé','03'],['3','Ordre de pose','04'],
+    ['4','Matériel & préparation','05'],['5','Préparation du sol','06'],['6','Pose du gazon','07'],
+    ['7','Jonctions','08'],['8','Fixation & brossage','09'],['9','Conseils & bonnes pratiques','10'],
+    ['10','Entretien & garantie','11'],['11','Accessoires','12']
   ].map(t=>`<div class="ti"><span class="tn">${t[0]}</span><span class="tt">${t[1]}</span><span class="tp">p. ${t[2]}</span></div>`).join('');
 
   const body=`
@@ -529,10 +542,8 @@ function pMateriel(){
         <div class="vsep"></div>
         <div><div class="ci2">${svg('checkc')}</div><div class="ct2">Accessible</div><div class="cd2">avec méthode et patience</div></div>
       </div>
-    </div>
-
-    <div class="callout danger" style="margin-top:16px">${svg('alert')}<div class="ct"><b>Les 4 erreurs qui ruinent une pose :</b> sable de maçonnerie au lieu de sable lavé · brins orientés différemment d'un lé à l'autre · jonctions sous la pluie · support insuffisamment compacté.</div></div>`;
-  return page(4,'Matériel & préparation',body);
+    </div>`;
+  return page(5,'Matériel & préparation',body);
 }
 
 /* COUPE DU SOL */
@@ -593,7 +604,7 @@ function pSol(){
       </div>
     </div>
     <div class="callout info" style="margin-top:16px">${ck()}<div class="ct"><b>Le détail qui change tout :</b> le compactage est l'étape la plus souvent bâclée. Un support mal compacté se tasse et fait apparaître des creux après quelques mois.</div></div>`;
-  return page(5,'Étape 1 — Préparation du sol',body);
+  return page(6,'Étape 1 — Préparation du sol',body);
 }
 
 /* PAGE 6 — ETAPE 2 */
@@ -630,13 +641,8 @@ function pPose(){
         </div>
       </div>
     </div>
-
-    <div class="card card-pad" style="margin-top:14px">
-      <div class="card-h"><div class="ci">${svg('arrow')}</div><h3>Votre ordre de pose</h3><span class="meta">${refs.length} lés</span></div>
-      <div class="flow">${flow}</div>
-      <div class="callout info" style="margin-top:13px">${svg('clock')}<div class="ct">Après déroulage, laissez le gazon <b>se détendre 1 à 2 h</b> avant le marouflage : il reprend sa planéité.</div></div>
-    </div>`;
-  return page(6,'Étape 2 — Pose du gazon',body);
+`;
+  return page(7,'Étape 2 — Pose du gazon',body);
 }
 
 /* PAGE 7 — ETAPE 3 */
@@ -680,7 +686,7 @@ function pJonctions(){
     <h2 class="h-sec">Aucune <span class="hl-mark">jonction</span></h2>
     <p class="lead">Votre surface se pose en un seul lé : pas de jonction à réaliser. Vérifiez la planéité avant la fixation.</p>
     <div class="callout info" style="margin-top:18px">${ck()}<div class="ct">Profitez-en pour faire un dernier essai à blanc et confirmer le sens des brins avant de fixer.</div></div>`;
-  return page(7,'Étape 3 — Jonctions',body);
+  return page(8,'Étape 3 — Jonctions',body);
 }
 
 /* PAGE 8 — ETAPE 4 */
@@ -713,7 +719,7 @@ function pFixation(){
       </div>
     </div>
     <div class="callout info" style="margin-top:18px">${svg('checkc')}<div class="ct">Sur sol meuble, un <b>lestage en sable de silice</b> (optionnel) saupoudré puis brossé alourdit le gazon, redresse les brins et améliore la tenue dans le temps.</div></div>`;
-  return page(8,'Étape 4 — Fixation & brossage',body);
+  return page(9,'Étape 4 — Fixation & brossage',body);
 }
 
 /* PAGE 9 — ENTRETIEN */
@@ -748,14 +754,12 @@ function projectTips(){
   return t.slice(0,4);
 }
 function pEntretien(){
-  const q=D.questionnaire;
-  const tips=projectTips().map(t=>`<div class="tip"><span class="ti2">${t[0]}</span><div><div class="tt2">${t[1]}</div><div class="td2">${t[2]}</div></div></div>`).join('');
   const body=`
-    <div class="eyebrow">Entretien & conseils</div>
+    <div class="eyebrow">Entretien</div>
     <h2 class="h-sec">Entretien & <span class="hl-mark">garantie</span></h2>
-    <p class="lead">Un entretien minimal suffit à conserver l'aspect neuf de votre gazon. Voici aussi les conseils adaptés à <b>votre projet</b>.</p>
+    <p class="lead">Un entretien minimal suffit à conserver l'aspect neuf de votre gazon pendant des années.</p>
 
-    <div class="grid-2" style="margin-top:13px;align-items:start">
+    <div class="grid-2" style="margin-top:18px;align-items:start">
       <div class="card card-pad"><div class="card-h"><div class="ci">${svg('clock')}</div><h3>Les premiers jours</h3></div>
         <div class="checks" style="gap:10px">
           <div class="chk">${ck()}<span>Laissez le gazon se stabiliser 48 h.</span></div>
@@ -772,13 +776,8 @@ function pEntretien(){
         </div></div>
     </div>
 
-    <div class="card card-pad" style="margin-top:13px">
-      <div class="card-h"><div class="ci">${svg('star')}</div><h3>Conseils pour votre projet</h3></div>
-      <div class="grid-2" style="gap:13px 26px">${tips}</div>
-    </div>
-
-    <div class="callout info" style="margin-top:13px">${svg('shield')}<div class="ct"><b>Garantie 15 ans</b> contre la décoloration UV et l'usure normale. Un brossage régulier conserve l'aspect neuf de 10 à 15 ans.</div></div>`;
-  return page(9,'Entretien & garantie',body);
+    <div class="callout info" style="margin-top:18px">${svg('shield')}<div class="ct"><b>Garantie 15 ans</b> contre la décoloration UV et l'usure normale. Un brossage régulier conserve l'aspect neuf de 10 à 15 ans.</div></div>`;
+  return page(11,'Entretien & garantie',body);
 }
 
 /* PAGE 10 — ACCESSOIRES */
@@ -804,10 +803,57 @@ function pAccessoires(){
       <div class="feat"><div class="fi">${svg('truck')}</div><div class="ft">Livraison offerte</div><div class="fd">France entière</div></div>
       <div class="feat"><div class="fi">${svg('star')}</div><div class="ft">Gazon premium</div><div class="fd">Qualité paysagiste</div></div>
     </div>`;
-  return page(10,'Accessoires & quantités',body);
+  return page(12,'Accessoires & quantités',body);
 }
 
-/* PAGE 11 — FIN (variante de la couverture) */
+/* PAGE 4 — ORDRE DE POSE (dediee, scalable N les) */
+function pOrdrePose(){
+  const refs=lesRefs();
+  const cards = refs.length
+    ? refs.map((r,i)=>`<div class="ord-card"><span class="ord-n">${i+1}</span><div class="ord-t"><div class="ord-ref">${r.ref}</div><div class="ord-dim">${r.largeur} m \u00D7 ${Number(r.longueur).toFixed(1)} m</div></div></div>`).join('')
+    : '<div style="color:var(--muted);font-size:13px;padding:10px">Le détail des lés sera précisé après validation du plan.</div>';
+  const body=`
+    <div class="eyebrow">Suivez le plan</div>
+    <h2 class="h-sec">Votre <span class="hl-mark">ordre de pose</span></h2>
+    <p class="lead">Déroulez les lés dans cet ordre précis, en partant d'un angle droit du terrain. Tous les lés doivent garder le même sens de brins.</p>
+
+    <div class="card card-pad" style="margin-top:16px">
+      <div class="card-h"><div class="ci">${svg('arrow')}</div><h3>Séquence de pose</h3><span class="meta">${refs.length} lés</span></div>
+      <div class="ord-grid">${cards}</div>
+    </div>
+
+    <div class="callout info" style="margin-top:14px">${svg('eye')}<div class="ct"><b>Sens des brins.</b> Orientez tous les lés dans la même direction, vers votre point de vue principal (terrasse, baie vitrée) : le rendu est plus dense et naturel.</div></div>
+    <div class="callout info" style="margin-top:12px">${svg('clock')}<div class="ct">Après déroulage, laissez le gazon <b>se détendre 1 à 2 h</b> avant le marouflage : il reprend sa planéité.</div></div>`;
+  return page(4,'Ordre de pose',body);
+}
+
+/* PAGE 10 — CONSEILS & BONNES PRATIQUES (4 erreurs + conseils projet) */
+function pConseils(){
+  const tips=projectTips().map(t=>`<div class="tip"><span class="ti2">${t[0]}</span><div><div class="tt2">${t[1]}</div><div class="td2">${t[2]}</div></div></div>`).join('');
+  const erreurs=[
+    ['Sable non adapté','Sable lavé 0/4 uniquement, jamais de sable de maçonnerie : il retient l\'eau et se tasse.'],
+    ['Brins mal orientés','Tous les lés doivent pointer dans le même sens, sinon les raccords se voient à la lumière.'],
+    ['Jonctions sous la pluie','Ne collez jamais par temps humide : la colle ne prend pas et le raccord finit par lâcher.'],
+    ['Support trop meuble','Compactez soigneusement : un sol non tassé crée des creux et des vagues après quelques semaines.']
+  ].map((e,i)=>`<div class="err"><span class="err-n">${i+1}</span><div><div class="err-t">${e[0]}</div><div class="err-d">${e[1]}</div></div></div>`).join('');
+  const body=`
+    <div class="eyebrow">Pour un résultat parfait</div>
+    <h2 class="h-sec">Conseils & <span class="hl-mark">bonnes pratiques</span></h2>
+    <p class="lead">Les points qui font la différence entre une pose correcte et une pose impeccable, et les conseils adaptés à <b>votre projet</b>.</p>
+
+    <div class="card card-pad" style="margin-top:14px">
+      <div class="card-h"><div class="ci">${svg('alert')}</div><h3>Les 4 erreurs à éviter</h3></div>
+      <div class="grid-2" style="gap:13px 26px">${erreurs}</div>
+    </div>
+
+    <div class="card card-pad" style="margin-top:14px">
+      <div class="card-h"><div class="ci">${svg('star')}</div><h3>Conseils pour votre projet</h3></div>
+      <div class="grid-2" style="gap:13px 26px">${tips}</div>
+    </div>`;
+  return page(10,'Conseils & bonnes pratiques',body);
+}
+
+/* PAGE 13 — FIN (variante de la couverture) */
 function pEnd(){
   return `<div class="page end">
     <div class="cnt">
@@ -856,6 +902,7 @@ function normalize(){
   D.produit = D.produit || {};
   if(bad(D.produit.nom)) D.produit.nom = 'Gazon synthétique';
   D.produit.prix_m2 = parseFloat(D.produit.prix_m2 || D.produit.prix || 0) || 0;
+  D.produit.image = D.produit.image || '';
   if(!D.produit.image_cover) D.produit.image_cover = D.produit.image || '';
   D.calepinage = D.calepinage || {};
   D.calepinage.les = Array.isArray(D.calepinage.les) ? D.calepinage.les : [];
@@ -865,9 +912,20 @@ function normalize(){
   D.calepinage.nb_les = D.calepinage.nb_les || D.calepinage.les.reduce((n,le)=>n+(parseInt(le.quantite||1)),0) || D.calepinage.les.length;
   D.questionnaire = D.questionnaire || {};
   D.accessoires = D.accessoires || {};
-  var g = D.accessoires.geotextile = D.accessoires.geotextile || {}; g.m2=g.m2||0; g.rouleaux=g.rouleaux||0; g.description=g.description||'';
-  var b = D.accessoires.bande_jonction = D.accessoires.bande_jonction || {}; b.ml=b.ml||0; b.unites=b.unites||0; b.description=b.description||'';
-  var p = D.accessoires.pointes = D.accessoires.pointes || {}; p.boites=p.boites||0; p.description=p.description||'';
+  var _surf = D.terrain.surface_brute || D.terrain.surface_nette || 0;
+  var _nj = D.calepinage.nb_jonctions || 0;
+  var g = D.accessoires.geotextile = D.accessoires.geotextile || {};
+  if(!g.m2) g.m2 = _surf ? Math.ceil(_surf*1.15) : 0;
+  if(!g.rouleaux) g.rouleaux = g.m2 ? Math.ceil(g.m2/25) : 0;
+  if(!g.description) g.description = 'Anti-repousse, drainage';
+  var b = D.accessoires.bande_jonction = D.accessoires.bande_jonction || {};
+  if(!b.unites) b.unites = _nj;
+  if(!b.ml) b.ml = _nj ? Math.ceil(_nj*10) : 0;
+  if(!b.description) b.description = 'Pour les jonctions entre les';
+  var p = D.accessoires.pointes = D.accessoires.pointes || {};
+  if(!p.boites) p.boites = _surf ? Math.max(1, Math.ceil(Math.sqrt(_surf)*8/170)) : 0;
+  if(!p.description) p.description = 'Fixation peripherique';
+  if(D.accessoires.enzyme===undefined) D.accessoires.enzyme = (D.questionnaire.has_animaux && _surf) ? {bouteilles:Math.ceil(_surf/50),description:'Neutralise les odeurs'} : null;
 }
 function paint(){
   if (window.VERDEKO_PDF_DATA) D = window.VERDEKO_PDF_DATA;
@@ -876,7 +934,7 @@ function paint(){
     SURF = D.terrain.surface_brute || D.terrain.surface_nette || 0;
     TOTAL = SURF * D.produit.prix_m2;
     document.getElementById('app').innerHTML =
-      [pCover(),pProjet(),pPlan(),pMateriel(),pSol(),pPose(),pJonctions(),pFixation(),pEntretien(),pAccessoires(),pEnd()].join('');
+      [pCover(),pProjet(),pPlan(),pOrdrePose(),pMateriel(),pSol(),pPose(),pJonctions(),pFixation(),pConseils(),pEntretien(),pAccessoires(),pEnd()].join('');
   }catch(e){
     console.error('[Verdeko PDF] Erreur de rendu:', (e && e.message) || e, e && e.stack);
     document.getElementById('app').innerHTML =
