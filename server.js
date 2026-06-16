@@ -1,5 +1,5 @@
 /**
- * Verdeko PDF Service v3.0.1
+ * Verdeko PDF Service v3.0.3
  * API Express + Puppeteer pour génération PDF
  * Optimisé pour Railway
  */
@@ -33,7 +33,7 @@ app.get('/health', (req, res) => {
         status: 'ok', 
         service: 'verdeko-pdf', 
         platform: 'railway',
-        version: '3.0.1',
+        version: '3.0.3',
         timestamp: new Date().toISOString()
     });
 });
@@ -42,7 +42,7 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
     res.json({ 
         service: 'Verdeko PDF Service',
-        version: '3.0.1',
+        version: '3.0.3',
         status: 'running',
         platform: 'Railway',
         endpoints: {
@@ -132,6 +132,14 @@ app.post('/generate', async (req, res) => {
             });
         }
         
+        // Diagnostic : que reçoit-on vraiment ? (à retirer plus tard)
+        console.log('[data] quest=' + JSON.stringify(data.questionnaire || {})
+            + ' | img=' + ((data.produit || {}).image || '\u2205')
+            + ' | cover=' + ((data.produit || {}).image_cover || '\u2205')
+            + ' | prod.id=' + ((data.produit || {}).id || '\u2205') + ' nom=' + ((data.produit || {}).nom || '\u2205')
+            + ' | les=' + (((data.calepinage || {}).les || []).length)
+            + ' | acc=' + Object.keys(data.accessoires || {}).join(','));
+
         // Charger le template
         const templatePath = path.join(__dirname, 'template.html');
         
@@ -259,7 +267,7 @@ function sanitizeFilename(str) {
 
 // Démarrer le serveur
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Verdeko PDF Service v3.0.1 démarré`);
+    console.log(`🚀 Verdeko PDF Service v3.0.3 démarré`);
     console.log(`📍 Port: ${PORT}`);
     console.log(`🌍 Environnement: ${process.env.NODE_ENV || 'development'}`);
     console.log(`✅ Prêt à générer des PDFs!`);
