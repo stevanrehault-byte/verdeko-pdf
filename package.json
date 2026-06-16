@@ -1,6 +1,6 @@
 {
   "name": "verdeko-pdf-service",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Service de génération PDF pour Verdeko - Puppeteer sur Railway",
   "main": "server.js",
   "scripts": {
