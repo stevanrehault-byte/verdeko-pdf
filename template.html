@@ -11,7 +11,7 @@
   --green-100:#eaf4ea; --green-50:#f3f8f3; --action:#3A8349;
   --mark:#c4e6c6;
   --ink:#23272a; --muted:#6b7770; --line:#e8e4da; --line-2:#efeae0;
-  --paper:#faf8f3; --paper-2:#f4f1ea; --card:#ffffff;
+  --paper:#f5efe2; --paper-2:#ece4d4; --card:#ffffff;
   --slate:#2F5C69; --slate-d:#23454f;
   --gold:#c9a227; --gold-d:#a87b14; --amber-bg:#fdf6e7; --amber-bd:#ecd9a6;
   --danger:#c0492f; --danger-bg:#fcf0ed; --danger-bd:#f0d4cc;
@@ -34,9 +34,9 @@ svg.ic{stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;strok
 /* ===== EN-TETE / PIED ===== */
 .pg-head{display:flex;align-items:center;justify-content:space-between;padding:11mm 15mm 0}
 .pg-head .hl{display:flex;align-items:center;gap:14px}
-.pg-head .lg{height:34px;width:auto;display:block}
+.pg-head .lg{height:34px;width:auto;display:block;position:relative;top:2px}
 .pg-head .hsep{width:1px;height:19px;background:var(--line)}
-.pg-head .ht{font-size:12.5px;font-weight:700;color:var(--slate-d);letter-spacing:.005em}
+.pg-head .ht{font-size:12.5px;font-weight:700;color:var(--slate-d);letter-spacing:.005em;line-height:1}
 .pg-head .hr{display:flex;align-items:center;gap:12px}
 .pg-head .dots{display:flex;gap:5px}
 .pg-head .dots i{width:5px;height:5px;border-radius:50%;background:var(--line);display:block}
@@ -140,7 +140,7 @@ svg.ic{stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;strok
 
 /* chips config */
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.chip{display:inline-flex;align-items:center;gap:7px;background:var(--paper-2);border:1px solid var(--line);border-radius:99px;padding:7px 14px;font-size:12px;font-weight:700;color:var(--ink)}
+.chip{display:inline-flex;align-items:center;gap:7px;background:var(--paper-2);border:1px solid var(--line);border-radius:99px;padding:7px 14px;font-size:12px;font-weight:700;color:var(--ink);white-space:nowrap}
 .chip .k{color:var(--muted)}
 
 /* badges */
@@ -188,8 +188,8 @@ svg.ic{stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;strok
 
 /* ====== COUVERTURE ====== */
 .cover{flex-direction:row;padding:0;background:#1c3a43}
-.cover{flex-direction:row;padding:0;background:#fff}
-.cover .cnt{width:67%;background:#fff;color:var(--ink);padding:20mm 18mm;display:flex;flex-direction:column;position:relative}
+.cover{flex-direction:row;padding:0;background:var(--paper)}
+.cover .cnt{width:67%;background:var(--paper);color:var(--ink);padding:20mm 18mm;display:flex;flex-direction:column;position:relative}
 .cover .cnt .logo{height:56px;width:auto;display:block;align-self:flex-start;object-fit:contain;flex:none}
 .cover .cnt .spacer{flex:1}
 .cover .cnt .eyebrow{color:var(--gold-d)}.cover .cnt .eyebrow::before{background:var(--gold)}
@@ -213,8 +213,8 @@ svg.ic{stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;strok
 .cover .hero-pill svg{width:13px;height:13px;stroke:var(--green-600)}
 
 /* ====== FIN ====== */
-.end{flex-direction:row;padding:0;background:#fff}
-.end .cnt{width:67%;background:#fff;color:var(--ink);padding:20mm 18mm;display:flex;flex-direction:column}
+.end{flex-direction:row;padding:0;background:var(--paper)}
+.end .cnt{width:67%;background:var(--paper);color:var(--ink);padding:20mm 18mm;display:flex;flex-direction:column}
 .end .cnt .logo{height:56px;width:auto;display:block;align-self:flex-start;object-fit:contain;flex:none}
 .end .cnt .spacer{flex:1}
 .end .eyebrow{color:var(--gold-d)}.end .eyebrow::before{background:var(--gold)}
@@ -366,7 +366,7 @@ function head(idx,section){
     <div class="hr"><div class="dots">${dots}</div><div class="pn"><b>${String(idx).padStart(2,'0')}</b> / ${TOTAL_PAGES}</div></div>
   </div><div class="pg-rule"></div>`;
 }
-function foot(){ return `<div class="pg-foot"><div class="fl"><span class="fg">Verdeko</span> — Dossier de pose personnalisé · <span class="fg">www.verdeko.fr</span></div><div class="fr">Réf. ${D.meta.ref}</div></div>`; }
+function foot(){ return `<div class="pg-foot"><div class="fl"><span class="fg">Verdeko</span> — Dossier de pose personnalisé · <span class="fg">www.verdeko.fr</span></div><div class="fr">${D.meta.ref?'Réf. '+D.meta.ref:''}</div></div>`; }
 function page(idx,section,body){ return `<div class="page">${head(idx,section)}<div class="pg-body">${body}</div>${foot()}</div>`; }
 
 /* PAGE 1 — COUVERTURE (2/3 contenu blanc + 1/3 visuel gazon) */
@@ -381,7 +381,7 @@ function pCover(){
       <div class="blk"><div class="k">Votre gazon</div><div class="v">${D.produit.nom}<span class="sep">/</span>${m2(SURF)}</div></div>
       <div class="blk client"><div class="k">Préparé pour</div><div class="v">${D.client.nom_complet}</div></div>
       <div class="spacer"></div>
-      <div class="foot"><span>Édité le ${D.meta.date}</span><span class="dot"></span><span>Réf. ${D.meta.ref}</span></div>
+      <div class="foot"><span>Édité le ${D.meta.date}</span>${D.meta.ref?'<span class="dot"></span><span>Réf. '+D.meta.ref+'</span>':''}</div>
       <div class="site">www.verdeko.fr · contact@verdeko.fr</div>
     </div>
     <div class="visual">
@@ -397,7 +397,7 @@ function pProjet(){
   const chips=[
     ['Forme',cap(D.terrain.forme)],
     ['Sol',cap(q.type_sol)+(q.is_sol_meuble?' · meuble':' · dur')],
-    ['Exposition',q.soleil||'—'],
+    ['Exposition',(q.soleil||'—').replace(/^Entre\s+/i,'').replace(/\s+et\s+/i,'–').replace(/\s*de soleil$/i,'')],
     ['Animaux',q.has_animaux?'Oui':'Non']
   ].map(c=>`<span class="chip"><span class="k">${c[0]}</span>${c[1]}</span>`).join('');
   const toc=[
@@ -430,15 +430,14 @@ function pProjet(){
           <div class="stat"><div class="v">${D.calepinage.nb_jonctions}</div><div class="l">Jonctions</div></div>
           <div class="stat"><div class="v">${nb(D.calepinage.chutes_percent)}<span class="u">%</span></div><div class="l">Chutes</div></div>
         </div>
+        <div class="callout info">${svg('checkc')}<div class="ct"><b>Conseil.</b> Lisez ce dossier en entier avant de commencer, rassemblez le matériel de la page 4, puis suivez les étapes dans l'ordre.</div></div>
       </div>
 
       <div class="card card-pad" style="align-self:stretch">
         <div class="card-h"><div class="ci">${svg('leaf')}</div><h3>Sommaire</h3></div>
         <div class="toc">${toc}</div>
       </div>
-    </div>
-
-    <div class="callout info" style="margin-top:18px">${svg('checkc')}<div class="ct"><b>Conseil.</b> Lisez ce dossier en entier avant de commencer, rassemblez le matériel de la page 4, puis suivez les étapes dans l'ordre.</div></div>`;
+    </div>`;
   return page(2,'Votre projet',body);
 }
 
@@ -534,19 +533,20 @@ function pMateriel(){
         <div class="card-h"><div class="ci">${svg('tool')}</div><h3>Outils à prévoir</h3></div>
         <div class="tool-list">${matos}</div>
       </div>
-      <div class="card card-pad">
-        <div class="card-h"><div class="ci">${svg('pkg')}</div><h3>Fournitures de votre projet</h3></div>
-        <div style="display:flex;flex-direction:column;gap:8px">${fourn}</div>
-      </div>
-    </div>
-
-    <div class="card card-pad" style="margin-top:16px;padding:16px 23px">
-      <div class="cond">
-        <div><div class="ci2">${svg('thermo')}</div><div class="ct2">10 – 25 °C</div><div class="cd2">Temps sec, vent faible</div></div>
-        <div class="vsep"></div>
-        <div><div class="ci2">${svg('clock')}</div><div class="ct2">1 à 2 jours</div><div class="cd2">pour environ 100 m²</div></div>
-        <div class="vsep"></div>
-        <div><div class="ci2">${svg('checkc')}</div><div class="ct2">Accessible</div><div class="cd2">avec méthode et patience</div></div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card card-pad">
+          <div class="card-h"><div class="ci">${svg('pkg')}</div><h3>Fournitures de votre projet</h3></div>
+          <div style="display:flex;flex-direction:column;gap:8px">${fourn}</div>
+        </div>
+        <div class="card card-pad" style="padding:16px 18px">
+          <div class="cond">
+            <div><div class="ci2">${svg('thermo')}</div><div class="ct2">10 – 25 °C</div><div class="cd2">Temps sec, vent faible</div></div>
+            <div class="vsep"></div>
+            <div><div class="ci2">${svg('clock')}</div><div class="ct2">1 à 2 jours</div><div class="cd2">pour environ 100 m²</div></div>
+            <div class="vsep"></div>
+            <div><div class="ci2">${svg('checkc')}</div><div class="ct2">Accessible</div><div class="cd2">avec méthode et patience</div></div>
+          </div>
+        </div>
       </div>
     </div>`;
   return page(5,'Matériel & préparation',body);
@@ -633,19 +633,20 @@ function pPose(){
   const body=`
     <div class="eyebrow">Étape 2 sur 4</div>
     <h2 class="h-sec">Pose <span class="hl-mark">du gazon</span></h2>
-    <p class="lead">Déroulez chaque lé dans l'ordre du plan, en respectant strictement le sens des brins. Orientez-les tous vers votre <b>point de vue principal</b> (la pastille dorée du plan) : le rendu est plus dense et naturel.</p>
+    <p class="lead">Déroulez chaque lé dans l'ordre du plan, en respectant le sens des brins. Orientez-les tous vers votre <b>point de vue principal</b> (l'œil sur le plan) : le rendu est plus dense et naturel.</p>
 
-    <div class="card card-pad" style="margin-top:14px;display:flex;flex-direction:column;flex:1;min-height:0">
-      <div class="card-h"><div class="ci">${svg('eye')}</div><h3>Orientation des brins — votre plan</h3><span class="meta">Sens : ${cap(D.calepinage.orientation)}</span></div>
-      <div class="diagram" style="flex:1;min-height:0;border:1.5px solid var(--line);border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:12px">${planForOrientation()}</div>
-    </div>
-
-    <div class="card card-pad" style="margin-top:14px">
-      <div class="card-h"><div class="ci">${svg('scissors')}</div><h3>Technique de découpe</h3></div>
-      <div class="grid-3" style="gap:20px">
-        <div class="step"><div class="nb">1</div><div class="st-b"><div class="t">Découpez côté envers</div><div class="d">Toujours sur le dos (latex), jamais sur les brins. Suivez les lignes de couture.</div></div></div>
-        <div class="step"><div class="nb">2</div><div class="st-b"><div class="t">Lame neuve, traits francs</div><div class="d">Changez la lame dès qu'elle accroche : une lame émoussée déchire le support.</div></div></div>
-        <div class="step"><div class="nb">3</div><div class="st-b"><div class="t">Retirez les lisières d'usine</div><div class="d">Recoupez le bord sans brins sur les côtés à jointer pour un raccord invisible.</div></div></div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-top:14px;flex:1;min-height:0;align-items:stretch">
+      <div class="card card-pad" style="display:flex;flex-direction:column;min-height:0">
+        <div class="card-h"><div class="ci">${svg('eye')}</div><h3>Votre plan de pose</h3><span class="meta">Sens : ${cap(D.calepinage.orientation)}</span></div>
+        <div class="diagram" style="flex:1;min-height:0;border:1.5px solid var(--line);border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:12px">${planForOrientation()}</div>
+      </div>
+      <div class="card card-pad" style="display:flex;flex-direction:column">
+        <div class="card-h"><div class="ci">${svg('scissors')}</div><h3>Découpe</h3></div>
+        <div class="steps">
+          <div class="step"><div class="nb">1</div><div class="st-b"><div class="t">Côté envers</div><div class="d">Toujours sur le dos (latex), jamais sur les brins. Suivez les coutures.</div></div></div>
+          <div class="step"><div class="nb">2</div><div class="st-b"><div class="t">Lame neuve</div><div class="d">Changez-la dès qu'elle accroche : une lame émoussée déchire le support.</div></div></div>
+          <div class="step"><div class="nb">3</div><div class="st-b"><div class="t">Lisières d'usine</div><div class="d">Recoupez le bord sans brins sur les côtés à jointer pour un raccord invisible.</div></div></div>
+        </div>
       </div>
     </div>
 `;
