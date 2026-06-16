@@ -3,1171 +3,854 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Guide d'Installation Verdeko</title>
+<title>Verdeko — Dossier de pose</title>
 <style>
-/* Police Optima avec fallbacks */
-@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+:root{
+  --green-700:#2e5c33; --green-600:#3d7a3d; --green-500:#509350; --green-400:#6aac6a;
+  --green-100:#eaf4ea; --green-50:#f3f8f3; --action:#3A8349;
+  --mark:#c4e6c6;
+  --ink:#23272a; --muted:#6b7770; --line:#e8e4da; --line-2:#efeae0;
+  --paper:#faf8f3; --paper-2:#f4f1ea; --card:#ffffff;
+  --slate:#2F5C69; --slate-d:#23454f;
+  --gold:#c9a227; --gold-d:#a87b14; --amber-bg:#fdf6e7; --amber-bd:#ecd9a6;
+  --danger:#c0492f; --danger-bg:#fcf0ed; --danger-bd:#f0d4cc;
+  --sh-sm:0 1px 2px rgba(28,42,33,.04),0 6px 18px rgba(28,42,33,.05);
+  --sh-md:0 2px 6px rgba(28,42,33,.06),0 18px 40px rgba(28,42,33,.10);
+  --font:'Proxima Nova','Montserrat',ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:var(--font);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+svg.ic{stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none;display:block}
+.hl-mark{background:linear-gradient(transparent 55%, var(--mark) 55% 94%, transparent 94%);padding:0 .07em}
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/* ===== PAGE A4 PAYSAGE ===== */
+@page{size:A4 landscape;margin:0}
+.page{width:297mm;height:210mm;background:var(--paper);position:relative;overflow:hidden;display:flex;flex-direction:column}
+@media screen{ body{background:#5b6660;padding:26px 0} .page{margin:0 auto 26px;box-shadow:0 12px 46px rgba(0,0,0,.34);border-radius:2px} }
+@media print{ .page{box-shadow:none;margin:0;border-radius:0;page-break-after:always} .page:last-child{page-break-after:auto} }
 
-:root {
-    --vert-primary: #4f934f;
-    --vert-dark: #3d7a3d;
-    --vert-light: #e8f5e9;
-    --bleu-petrol: #2f5c69;
-    --gris-light: #f8f9fa;
-    --gris-border: #e0e0e0;
-}
+/* ===== EN-TETE / PIED ===== */
+.pg-head{display:flex;align-items:center;justify-content:space-between;padding:11mm 15mm 0}
+.pg-head .hl{display:flex;align-items:center;gap:14px}
+.pg-head .lg{height:28px;width:auto;display:block}
+.pg-head .hsep{width:1px;height:19px;background:var(--line)}
+.pg-head .ht{font-size:12.5px;font-weight:700;color:var(--slate-d);letter-spacing:.005em}
+.pg-head .hr{display:flex;align-items:center;gap:12px}
+.pg-head .dots{display:flex;gap:5px}
+.pg-head .dots i{width:5px;height:5px;border-radius:50%;background:var(--line);display:block}
+.pg-head .dots i.on{background:var(--green-500);width:15px;border-radius:3px}
+.pg-head .pn{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.05em}
+.pg-head .pn b{color:var(--slate-d)}
+.pg-rule{height:1px;background:var(--line);margin:9px 15mm 0}
+.pg-body{flex:1;padding:7mm 15mm 0;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.pg-foot{display:flex;align-items:flex-end;justify-content:space-between;padding:0 15mm 10mm;margin-top:auto}
+.pg-foot .fl{font-size:11.5px;color:var(--muted);letter-spacing:.005em}
+.pg-foot .fl .fg{color:var(--green-700);font-weight:700}
+.pg-foot .fr{font-size:11px;color:var(--muted);font-weight:600}
 
-body {
-    font-family: 'Optima', 'Lato', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 11pt;
-    color: #333;
-    line-height: 1.4;
-}
+/* eyebrow + titres */
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold-d);display:flex;align-items:center;gap:9px}
+.eyebrow::before{content:"";width:22px;height:2px;background:var(--gold);border-radius:2px}
+.h-sec{font-size:27px;font-weight:700;color:var(--slate-d);letter-spacing:-.012em;margin-top:7px;line-height:1.1}
+.lead{font-size:13.5px;color:var(--muted);margin-top:7px;max-width:610px;line-height:1.55}
+.lead b{color:var(--ink)}
 
-/* === PAGES === */
-.page {
-    width: 297mm;
-    height: 210mm;
-    position: relative;
-    overflow: hidden;
-    page-break-after: always;
-    background: white;
-}
-.page:last-child { page-break-after: auto; }
+/* cartes */
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh-sm)}
+.card-pad{padding:20px 23px}
+.card-h{display:flex;align-items:center;gap:11px;margin-bottom:15px}
+.card-h .ci{width:32px;height:32px;border-radius:10px;background:var(--green-50);display:flex;align-items:center;justify-content:center}
+.card-h .ci svg{width:17px;height:17px;stroke:var(--green-600)}
+.card-h h3{font-size:15px;font-weight:700;color:var(--ink)}
+.card-h .meta{margin-left:auto;font-size:12px;font-weight:700;color:var(--slate)}
 
-/* === HEADER / FOOTER === */
-.page-header {
-    background: linear-gradient(135deg, var(--vert-primary), var(--vert-dark));
-    color: white;
-    padding: 14px 30px;
-    font-size: 15pt;
-    font-weight: 600;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.page-num { font-size: 10pt; font-weight: 400; opacity: 0.9; }
-.page-footer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: var(--vert-primary);
-    color: white;
-    padding: 10px 30px;
-    font-size: 9pt;
-    text-align: center;
-}
-.page-content {
-    padding: 25px 30px;
-    height: calc(210mm - 90px);
-}
+/* grilles */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 
-/* === COVER === */
-.cover {
-    background-image: url('https://prodnative.fr/wp-content/uploads/2023/04/green-grass-scaled-1.jpg');
-    background-size: cover;
-    background-position: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.cover-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(29,60,35,0.85) 0%, rgba(45,90,50,0.7) 50%, rgba(35,75,40,0.8) 100%);
-}
-.cover-card {
-    position: relative;
-    z-index: 1;
-    background: white;
-    border-radius: 20px;
-    padding: 45px 60px;
-    text-align: center;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-    max-width: 480px;
-}
-.cover-logo {
-    height: 55px;
-    margin-bottom: 25px;
-}
-.cover-title {
-    font-size: 28pt;
-    font-weight: 700;
-    color: var(--bleu-petrol);
-    margin-bottom: 8px;
-}
-.cover-subtitle {
-    font-size: 13pt;
-    color: var(--vert-primary);
-    font-weight: 500;
-    margin-bottom: 25px;
-}
-.cover-line {
-    width: 80px;
-    height: 3px;
-    background: var(--vert-primary);
-    margin: 0 auto 25px;
-    border-radius: 2px;
-}
-.cover-label {
-    font-size: 10pt;
-    color: #888;
-    margin-bottom: 5px;
-}
-.cover-name {
-    font-size: 20pt;
-    font-weight: 700;
-    color: var(--vert-primary);
-    margin-bottom: 15px;
-}
-.cover-info {
-    font-size: 10pt;
-    color: #666;
-    margin-bottom: 10px;
-}
-.cover-date {
-    font-size: 9pt;
-    color: #999;
-}
-.cover .page-footer {
-    background: transparent;
-    color: rgba(255,255,255,0.8);
-}
+/* check rond plein (style home) */
+.ckf{width:22px;height:22px;border-radius:50%;background:var(--green-500);display:inline-flex;align-items:center;justify-content:center;flex:none}
+.ckf svg{width:12px;height:12px;stroke:#fff;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
 
-/* === CARDS === */
-.card {
-    background: var(--gris-light);
-    border-radius: 10px;
-    padding: 18px;
-    margin-bottom: 15px;
-}
-.card-title {
-    font-size: 11pt;
-    font-weight: 600;
-    color: var(--bleu-petrol);
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid var(--vert-light);
-}
-.info-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 6px;
-    font-size: 10pt;
-}
-.info-label { color: #666; }
-.info-value { font-weight: 600; }
+/* etapes numerotees */
+.steps{display:grid;gap:16px}
+.step{display:flex;gap:15px;align-items:flex-start}
+.step .nb{width:34px;height:34px;border-radius:50%;background:#fff;border:1.5px solid var(--green-500);color:var(--green-600);font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 0 0 5px var(--green-50)}
+.step .st-b{padding-top:2px}
+.step .st-b .t{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.step .st-b .d{font-size:12.5px;color:var(--muted);line-height:1.55}
+.step .st-b .d b{color:var(--ink);font-weight:700}
 
-/* === PRODUCT CARD === */
-.product-card {
-    background: white;
-    border: 2px solid var(--vert-primary);
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-}
-.product-badge {
-    display: inline-block;
-    background: var(--vert-primary);
-    color: white;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 8pt;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.product-subtitle {
-    font-size: 8pt;
-    color: #888;
-    margin-top: 8px;
-}
-.product-name {
-    font-size: 16pt;
-    font-weight: 700;
-    color: #333;
-    margin: 10px 0;
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--vert-primary);
-}
-.product-image {
-    margin: 12px 0;
-}
-.product-image img {
-    max-width: 140px;
-    max-height: 100px;
-    border-radius: 8px;
-}
-.product-price-old {
-    color: #999;
-    text-decoration: line-through;
-    font-size: 10pt;
-}
-.product-price {
-    font-size: 16pt;
-    font-weight: 700;
-    color: var(--vert-primary);
-}
-.product-discount {
-    display: inline-block;
-    background: #ff5722;
-    color: white;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 9pt;
-    font-weight: 600;
-    margin-left: 8px;
-}
-.product-surface {
-    font-size: 10pt;
-    color: #666;
-    margin-top: 10px;
-}
-.product-total {
-    font-size: 14pt;
-    font-weight: 700;
-    color: var(--vert-primary);
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 2px solid var(--vert-light);
-}
+/* callouts */
+.callout{display:flex;gap:13px;align-items:flex-start;border-radius:14px;padding:15px 18px;border:1px solid}
+.callout svg{width:19px;height:19px;flex:none;margin-top:1px}
+.callout .ct{font-size:12.5px;line-height:1.55}
+.callout .ct b{font-weight:700}
+.callout.warn{background:var(--amber-bg);border-color:var(--amber-bd);color:#6e560f}.callout.warn svg{stroke:var(--gold-d)}.callout.warn .ct b{color:var(--gold-d)}
+.callout.info{background:var(--green-50);border-color:var(--green-100);color:#33503a}.callout.info svg{stroke:var(--green-600)}.callout.info .ct b{color:var(--green-700)}
+.callout.danger{background:var(--danger-bg);border-color:var(--danger-bd);color:#7a2e1d}.callout.danger svg{stroke:var(--danger)}.callout.danger .ct b{color:var(--danger)}
 
-/* === BADGES === */
-.badge-animaux {
-    display: inline-block;
-    background: #E3F2FD;
-    color: #1565C0;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 9pt;
-    font-weight: 500;
-    margin-top: 10px;
-}
-.le-badge {
-    display: inline-block;
-    background: var(--vert-primary);
-    color: white;
-    padding: 3px 10px;
-    border-radius: 4px;
-    font-size: 9pt;
-    font-weight: 600;
-}
+/* stat tiles */
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 8px;text-align:center;box-shadow:var(--sh-sm)}
+.stat .v{font-size:21px;font-weight:700;color:var(--slate)}
+.stat .v .u{font-size:12px;font-weight:700;color:var(--muted)}
+.stat .l{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-top:4px}
 
-/* === LAYOUT === */
-.cols {
-    display: flex;
-    gap: 25px;
-}
-.col-left { flex: 1; }
-.col-right { flex: 1; }
+/* listes check / icones */
+.checks{display:grid;gap:12px}
+.chk{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--ink);line-height:1.4}
+.chk>svg.ic{width:18px;height:18px;stroke:var(--green-600);flex:none}
+.chk .s{color:var(--muted);font-size:11.5px;margin-left:auto;font-weight:600}
+.chk b{font-weight:700}
 
-/* Layout page récap : produit en haut, infos en bas */
-.recap-layout {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    height: 100%;
-}
-.recap-product-row {
-    display: flex;
-    gap: 25px;
-    align-items: stretch;
-}
-.recap-product-main {
-    flex: 2;
-    display: flex;
-    gap: 20px;
-    background: white;
-    border: 3px solid var(--vert-primary);
-    border-radius: 12px;
-    padding: 20px;
-    align-items: center;
-}
-.recap-product-image {
-    flex: 0 0 180px;
-}
-.recap-product-image img {
-    width: 180px;
-    height: 140px;
-    object-fit: cover;
-    border-radius: 10px;
-}
-.recap-product-info {
-    flex: 1;
-}
-.recap-product-badge {
-    display: inline-block;
-    background: var(--vert-primary);
-    color: white;
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-size: 9pt;
-    font-weight: 600;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-}
-.recap-product-name {
-    font-size: 20pt;
-    font-weight: 700;
-    color: #333;
-    margin-bottom: 15px;
-}
-.recap-product-prices {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 10px;
-}
-.recap-price-old {
-    color: #999;
-    text-decoration: line-through;
-    font-size: 12pt;
-}
-.recap-price {
-    font-size: 24pt;
-    font-weight: 700;
-    color: var(--vert-primary);
-}
-.recap-discount {
-    background: #ff5722;
-    color: white;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 10pt;
-    font-weight: 600;
-}
-.recap-total-box {
-    flex: 1;
-    background: var(--vert-light);
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-.recap-total-label {
-    font-size: 10pt;
-    color: #666;
-    margin-bottom: 5px;
-}
-.recap-total-surface {
-    font-size: 18pt;
-    font-weight: 700;
-    color: var(--vert-primary);
-    margin-bottom: 15px;
-}
-.recap-total-price {
-    font-size: 22pt;
-    font-weight: 700;
-    color: var(--bleu-petrol);
-}
-.recap-info-row {
-    display: flex;
-    gap: 20px;
-}
-.recap-info-card {
-    flex: 1;
-    background: var(--gris-light);
-    border-radius: 10px;
-    padding: 18px;
-}
+/* lignes */
+.row{display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:#fff;box-shadow:var(--sh-sm)}
+.row .ri{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex:none;background:var(--green-50)}
+.row .ri svg{width:19px;height:19px;stroke:var(--green-600)}
+.row .rt{flex:1}
+.row .rt .a{font-size:13.5px;font-weight:700;color:var(--ink)}
+.row .rt .b{font-size:11.5px;color:var(--muted);margin-top:2px}
+.row .rv{font-size:13.5px;font-weight:700;color:var(--slate);text-align:right;flex:none}
 
-/* Layout page calepinage : SVG 2/3 gauche, liste 1/3 droite */
-.calep-layout {
-    display: flex;
-    gap: 20px;
-    height: calc(100% - 80px);
-}
-.calep-svg-col {
-    flex: 2;
-    display: flex;
-    flex-direction: column;
-}
-.calep-list-col {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 200px;
-    max-width: 280px;
-}
-.calep-header {
-    text-align: center;
-    margin-bottom: 15px;
-}
-.calep-surface {
-    font-size: 20pt;
-    font-weight: 700;
-    color: var(--vert-primary);
-}
-.calep-surface-label {
-    font-size: 11pt;
-    color: #666;
-}
-.calep-orient {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 8px;
-}
-.calep-orient-label {
-    font-size: 9pt;
-    color: #666;
-}
-.calep-orient-btn {
-    padding: 5px 12px;
-    border-radius: 5px;
-    font-size: 9pt;
-    font-weight: 500;
-}
-.svg-container {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #fafafa;
-    border-radius: 10px;
-    padding: 10px;
-    overflow: hidden;
-}
-.svg-container svg {
-    max-width: 100%;
-    max-height: 100%;
-    height: auto;
-}
-.calep-list-card {
-    background: var(--gris-light);
-    border-radius: 10px;
-    padding: 15px;
-    flex: 1;
-    overflow: hidden;
-}
-.calep-list-title {
-    font-size: 10pt;
-    font-weight: 600;
-    color: var(--bleu-petrol);
-    margin-bottom: 10px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid var(--vert-light);
-}
-.calep-rolls-table {
-    width: 100%;
-    font-size: 9pt;
-    border-collapse: collapse;
-}
-.calep-rolls-table th {
-    text-align: left;
-    font-weight: 600;
-    color: #666;
-    padding: 4px 0;
-    border-bottom: 1px solid var(--gris-border);
-}
-.calep-rolls-table td {
-    padding: 5px 0;
-    border-bottom: 1px solid #eee;
-}
-.calep-rolls-table .surface-col {
-    text-align: right;
-}
-.calep-summary {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 2px solid var(--vert-primary);
-    font-size: 9pt;
-}
-.calep-summary-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 4px;
-}
-.calep-summary-total {
-    font-weight: 700;
-    color: var(--vert-primary);
-}
+/* tableau */
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th{text-align:left;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:0 0 9px;border-bottom:1px solid var(--line)}
+.tbl th.r,.tbl td.r{text-align:right}
+.tbl td{padding:10px 0;border-bottom:1px solid var(--line-2);color:var(--ink)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl .tag{display:inline-block;background:var(--green-500);color:#fff;font-size:11px;font-weight:700;border-radius:6px;padding:3px 10px}
+.tbl tfoot td{font-weight:700;color:var(--slate);border-top:1.5px solid var(--line);border-bottom:none;padding-top:12px}
 
-/* === SURFACE BOX === */
-.surface-box {
-    text-align: center;
-    margin-bottom: 20px;
-}
-.surface-big {
-    font-size: 22pt;
-    font-weight: 700;
-    color: var(--vert-primary);
-}
-.surface-label {
-    font-size: 12pt;
-    font-weight: 400;
-    color: #666;
-}
+/* flow ordre */
+.flow{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.flow .fi{display:flex;align-items:center;gap:10px;background:var(--paper-2);border:1px solid var(--line);border-radius:12px;padding:9px 13px}
+.flow .fi .n{width:23px;height:23px;border-radius:50%;background:var(--green-500);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.flow .fi .lt{font-size:12.5px;font-weight:700;color:var(--ink)}
+.flow .fi .ld{font-size:11px;color:var(--muted)}
+.flow .ar{stroke:#c7cdc4;width:16px;height:16px}
 
-/* === ORIENTATION === */
-.orient-box {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-.orient-label {
-    font-size: 10pt;
-    color: #666;
-}
-.orient-btn {
-    padding: 8px 18px;
-    border-radius: 6px;
-    font-size: 10pt;
-    font-weight: 500;
-}
-.orient-active {
-    background: var(--vert-primary);
-    color: white;
-}
-.orient-inactive {
-    background: #eee;
-    color: #999;
-}
+/* chips config */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chip{display:inline-flex;align-items:center;gap:7px;background:var(--paper-2);border:1px solid var(--line);border-radius:99px;padding:7px 14px;font-size:12px;font-weight:700;color:var(--ink)}
+.chip .k{color:var(--muted)}
 
-/* === SVG BOX === */
-.svg-box {
-    text-align: center;
-    margin: 15px 0;
-}
-.svg-box svg {
-    max-width: 100%;
-    max-height: 200px;
-}
+/* badges */
+.brow{display:flex;gap:9px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:700;border-radius:99px;padding:6px 13px;display:inline-flex;align-items:center;gap:6px}
+.badge svg{width:12px;height:12px}
+.badge.gold{background:var(--amber-bg);color:var(--gold-d);border:1px solid var(--amber-bd)}.badge.gold svg{stroke:var(--gold-d)}
+.badge.green{background:var(--green-50);color:var(--green-700);border:1px solid var(--green-100)}.badge.green svg{stroke:var(--green-600)}
+.badge.slate{background:#eef3f4;color:var(--slate-d);border:1px solid #dde7e9}.badge.slate svg{stroke:var(--slate)}
 
-/* === TABLE === */
-.rolls-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 10pt;
-}
-.rolls-table th {
-    background: var(--vert-light);
-    color: var(--vert-dark);
-    padding: 10px;
-    text-align: left;
-    font-weight: 600;
-}
-.rolls-table td {
-    padding: 10px;
-    border-bottom: 1px solid var(--gris-border);
-}
-.rolls-table tfoot td {
-    background: var(--gris-light);
-    font-weight: 600;
-}
+/* carte feature (style home reassurance) */
+.feat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 20px;box-shadow:var(--sh-sm);text-align:center}
+.feat .fi{width:46px;height:46px;border-radius:13px;background:var(--green-50);display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.feat .fi svg{width:22px;height:22px;stroke:var(--green-600)}
+.feat .ft{font-size:13.5px;font-weight:700;color:var(--ink)}
+.feat .fd{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.45}
 
-/* === STEPS === */
-.steps-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-}
-.steps-grid-2 {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-}
-.step-card {
-    background: var(--gris-light);
-    border-radius: 10px;
-    padding: 15px;
-    text-align: center;
-}
-.step-num {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: var(--vert-primary);
-    color: white;
-    border-radius: 50%;
-    font-weight: 700;
-    font-size: 13pt;
-    margin-bottom: 8px;
-}
-.step-title {
-    font-weight: 600;
-    color: #333;
-    font-size: 10pt;
-    margin-bottom: 6px;
-}
-.step-desc {
-    color: #666;
-    font-size: 9pt;
-    line-height: 1.3;
-}
+/* produit hero (page 2) */
+.hero-prod{display:flex;align-items:stretch;overflow:hidden}
+.hero-prod .hp-img{width:170px;flex:none;background:linear-gradient(135deg,#6aac6a,#3d7a3d);position:relative}
+.hero-prod .hp-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero-prod .hp-body{flex:1;padding:22px 24px;display:flex;flex-direction:column;justify-content:center}
+.hero-prod .hp-name{font-size:23px;font-weight:700;color:var(--ink);letter-spacing:-.01em}
+.hero-prod .hp-sub{font-size:12.5px;color:var(--muted);margin-top:3px;font-weight:600}
+.hero-prod .hp-price{flex:none;width:200px;background:var(--slate-d);color:#fff;padding:22px 24px;display:flex;flex-direction:column;justify-content:center}
+.hero-prod .hp-price .k{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8fb0b6}
+.hero-prod .hp-price .v{font-size:27px;font-weight:700;margin:3px 0}
+.hero-prod .hp-price .kk{font-size:11px;color:#9fbbc0}
 
-/* === ALERTS === */
-.alert {
-    background: #FFF8E1;
-    border-left: 4px solid #FFA000;
-    padding: 12px 15px;
-    border-radius: 0 8px 8px 0;
-    font-size: 10pt;
-    margin: 15px 0;
-}
-.alert-danger {
-    background: #FFEBEE;
-    border: 2px solid #F44336;
-    border-radius: 10px;
-    padding: 15px;
-    text-align: center;
-    margin: 20px 0;
-}
-.alert-danger strong {
-    color: #C62828;
-    font-size: 11pt;
-}
-.alert-danger small {
-    display: block;
-    color: #666;
-    margin-top: 5px;
-}
-.success-box {
-    background: var(--vert-light);
-    border-left: 4px solid var(--vert-primary);
-    padding: 12px 15px;
-    border-radius: 0 8px 8px 0;
-    font-size: 10pt;
-    margin: 15px 0;
-}
-.sol-badge {
-    background: var(--vert-light);
-    padding: 12px 18px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    font-size: 11pt;
-}
-.sol-badge strong {
-    color: var(--vert-dark);
-}
+/* divers */
+.soft{color:var(--muted)}
+.kv{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line-2);font-size:13px}
+.kv:last-child{border-bottom:none}
+.kv .k{color:var(--muted)} .kv .v{font-weight:700;color:var(--ink)}
+.toc{display:grid}
+.toc .ti{display:flex;align-items:center;gap:13px;padding:11px 0;border-bottom:1px solid var(--line-2);font-size:13px}
+.toc .ti:last-child{border-bottom:none}
+.toc .ti .tn{font-size:11px;font-weight:700;color:#fff;background:var(--green-500);width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex:none}
+.toc .ti .tt{flex:1;font-weight:700;color:var(--ink)}
+.toc .ti .tp{font-size:12px;color:var(--muted);font-weight:700}
+.season{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 16px;box-shadow:var(--sh-sm)}
+.season .sh{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:700;color:var(--slate-d);margin-bottom:6px}
+.season .sh svg{width:16px;height:16px;stroke:var(--green-600)}
+.season .sd{font-size:11.5px;color:var(--muted);line-height:1.5}
 
-/* === ORDRE POSE === */
-.ordre-pose {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 15px;
-}
-.ordre-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-.ordre-arrow {
-    color: var(--vert-primary);
-    font-weight: 700;
-    font-size: 16pt;
-}
-.dim {
-    font-size: 9pt;
-    color: #666;
-}
+/* ====== COUVERTURE ====== */
+.cover{flex-direction:row;padding:0;background:#1c3a43}
+.cover{flex-direction:row;padding:0;background:#fff}
+.cover .cnt{width:67%;background:#fff;color:var(--ink);padding:20mm 18mm;display:flex;flex-direction:column;position:relative}
+.cover .cnt .logo{height:42px;width:auto;display:block;align-self:flex-start;object-fit:contain;flex:none}
+.cover .cnt .spacer{flex:1}
+.cover .cnt .eyebrow{color:var(--gold-d)}.cover .cnt .eyebrow::before{background:var(--gold)}
+.cover .cnt h1{font-size:48px;font-weight:700;line-height:1.03;letter-spacing:-.02em;color:var(--slate-d);margin-top:16px}
+.cover .cnt h1 .g{color:var(--green-600)}
+.cover .cnt .tline{font-size:15px;color:var(--muted);margin-top:12px;font-weight:600}
+.cover .cnt .blk{margin-top:24px;padding-top:20px;border-top:1px solid var(--line);max-width:560px}
+.cover .cnt .blk .k{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.cover .cnt .blk .v{font-size:19px;font-weight:700;margin-top:5px;color:var(--ink)}
+.cover .cnt .blk .v .sep{color:#c7cdc4;margin:0 10px;font-weight:400}
+.cover .cnt .blk.client .v{font-size:22px}
+.cover .cnt .foot{margin-top:22px;display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--muted)}
+.cover .cnt .foot .dot{width:4px;height:4px;border-radius:50%;background:#c7cdc4}
+.cover .cnt .site{font-size:11.5px;color:var(--green-700);font-weight:600;margin-top:13px}
+.cover .visual{width:33%;position:relative;overflow:hidden;background:
+  repeating-linear-gradient(102deg,#3d7a3d 0 7px,#356b35 7px 14px),linear-gradient(160deg,#5aa05a,#2e5c33)}
+.cover .visual::before{content:"";position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(var(--gold),#9c7510);z-index:2}
+.cover .visual img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.cover .visual::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(16,34,40,.45));pointer-events:none}
+.cover .hero-pill{position:absolute;bottom:16mm;left:50%;transform:translateX(-50%);white-space:nowrap;background:rgba(255,255,255,.95);color:var(--green-700);font-size:11px;font-weight:700;border-radius:99px;padding:8px 14px;display:flex;align-items:center;gap:7px;box-shadow:0 8px 22px rgba(0,0,0,.22);z-index:3}
+.cover .hero-pill svg{width:13px;height:13px;stroke:var(--green-600)}
 
-/* === ANIMAUX === */
-.animaux-card {
-    background: #E3F2FD;
-    border: 1px solid #1976D2;
-    border-radius: 10px;
-    padding: 18px;
-    margin-top: 15px;
-}
-.animaux-card .card-title {
-    color: #1565C0;
-    border-color: #BBDEFB;
-}
-.animaux-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    text-align: center;
-}
-.animaux-item strong {
-    display: block;
-    color: #1565C0;
-    font-size: 9pt;
-    margin-bottom: 4px;
-}
-.animaux-item span {
-    font-size: 8pt;
-    color: #555;
-}
+/* ====== FIN ====== */
+.end{flex-direction:row;padding:0;background:#fff}
+.end .cnt{width:67%;background:#fff;color:var(--ink);padding:20mm 18mm;display:flex;flex-direction:column}
+.end .cnt .logo{height:42px;width:auto;display:block;align-self:flex-start;object-fit:contain;flex:none}
+.end .cnt .spacer{flex:1}
+.end .eyebrow{color:var(--gold-d)}.end .eyebrow::before{background:var(--gold)}
+.end h2{font-size:46px;font-weight:700;color:var(--slate-d);margin-top:15px;letter-spacing:-.02em;line-height:1.04}
+.end p{font-size:14.5px;color:var(--muted);margin-top:13px;line-height:1.6;max-width:560px}
+.end .band{margin-top:24px;background:linear-gradient(135deg,var(--green-600),var(--green-700));border-radius:18px;padding:20px 24px;display:flex;gap:14px;box-shadow:var(--sh-sm)}
+.end .band .b{flex:1;display:flex;align-items:center;gap:12px;color:#fff}
+.end .band .b svg{width:22px;height:22px;stroke:#fff;flex:none}
+.end .band .b .bt{font-size:13px;font-weight:700;color:#fff}
+.end .band .b .bd{font-size:11px;color:rgba(255,255,255,.78);margin-top:1px}
+.end .band .vline{width:1px;background:rgba(255,255,255,.22)}
+.end .contacts{margin-top:24px;display:flex;gap:30px;flex-wrap:wrap}
+.end .contacts .c{display:flex;align-items:center;gap:11px}
+.end .contacts .c svg{width:18px;height:18px;stroke:var(--green-600)}
+.end .contacts .c .ct .k{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.end .contacts .c .ct .v{font-size:14px;font-weight:700;color:var(--ink);margin-top:2px}
+.end .visual{width:33%;position:relative;overflow:hidden;background:
+  repeating-linear-gradient(102deg,#3d7a3d 0 7px,#356b35 7px 14px),linear-gradient(160deg,#5aa05a,#2e5c33)}
+.end .visual::before{content:"";position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(var(--gold),#9c7510);z-index:2}
+.end .visual img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.end .visual::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(16,34,40,.45));pointer-events:none}
+.end .visual .vtag{position:absolute;bottom:16mm;left:50%;transform:translateX(-50%);white-space:nowrap;background:rgba(255,255,255,.95);color:var(--green-700);font-size:11px;font-weight:700;border-radius:99px;padding:8px 14px;display:flex;align-items:center;gap:7px;box-shadow:0 8px 22px rgba(0,0,0,.22);z-index:3}
+.end .visual .vtag svg{width:13px;height:13px;stroke:var(--green-600)}
 
-/* === ACCESSOIRES === */
-.acc-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-}
-.acc-item {
-    background: white;
-    border: 1px solid var(--gris-border);
-    border-radius: 8px;
-    padding: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.acc-info {}
-.acc-name {
-    font-weight: 600;
-    font-size: 10pt;
-    margin-bottom: 3px;
-}
-.acc-desc {
-    font-size: 8pt;
-    color: #888;
-}
-.acc-qty {
-    font-weight: 700;
-    color: var(--vert-primary);
-    font-size: 10pt;
-    text-align: right;
-}
+/* utilitaires V4 */
+.numdot{border-radius:50%;background:#fff;border:1.5px solid var(--green-500);color:var(--green-600);font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex:none;box-shadow:0 0 0 4px var(--green-50)}
+.diagram{width:100%;display:flex;align-items:center;justify-content:center}
+.diagram svg{width:100%;height:100%;display:block}
+.cond{display:flex;justify-content:space-around;align-items:center;text-align:center;gap:14px}
+.cond .ci2{width:38px;height:38px;border-radius:11px;background:var(--green-50);display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
+.cond .ci2 svg{width:19px;height:19px;stroke:var(--green-600)}
+.cond .ct2{font-size:13px;font-weight:700;color:var(--ink)}
+.cond .cd2{font-size:11px;color:var(--muted);margin-top:2px}
+.cond .vsep{width:1px;align-self:stretch;background:var(--line-2)}
+.tip{display:flex;gap:12px;align-items:flex-start}
+.tip .ti2{width:36px;height:36px;border-radius:10px;background:var(--green-50);display:flex;align-items:center;justify-content:center;flex:none}
+.tip .ti2 svg{width:18px;height:18px;stroke:var(--green-600)}
+.tip .tt2{font-size:13px;font-weight:700;color:var(--ink)}
+.tip .td2{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.45}
 
-/* === FINALE === */
-.finale {
-    background-image: url('https://prodnative.fr/wp-content/uploads/2023/04/green-grass-scaled-1.jpg');
-    background-size: cover;
-    background-position: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.finale-card {
-    position: relative;
-    z-index: 1;
-    background: white;
-    border-radius: 20px;
-    padding: 50px 60px;
-    text-align: center;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-    max-width: 450px;
-}
-.finale-title {
-    font-size: 26pt;
-    font-weight: 700;
-    color: var(--vert-primary);
-    margin-bottom: 10px;
-}
-.finale-subtitle {
-    font-size: 11pt;
-    color: #666;
-    margin-bottom: 30px;
-}
-.finale-contacts {
-    text-align: left;
-    margin-bottom: 25px;
-}
-.finale-contact {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    font-size: 10pt;
-}
-.finale-contact-label { color: #888; }
-.finale-contact-value { font-weight: 600; color: var(--vert-primary); }
-.finale-logo {
-    height: 50px;
-}
-
-/* === LISTS === */
-.tips-list {
-    color: #666;
-    font-size: 9pt;
-    padding-left: 18px;
-}
-.tips-list li {
-    margin-bottom: 5px;
-}
-
-/* === PRINT === */
-@media print {
-    .page { page-break-after: always; }
-    .page:last-child { page-break-after: auto; }
-}
+/* barre d'apercu — PREVIEW ONLY (jamais en print) */
+.devbar{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:9999;background:#fff;border:1px solid var(--line);border-radius:99px;padding:6px;display:flex;gap:6px;align-items:center;box-shadow:0 10px 30px rgba(0,0,0,.2);font-family:var(--font)}
+.devbar .lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:0 6px 0 10px}
+.devbar button{border:none;background:var(--paper-2);color:var(--ink);font-size:12px;font-weight:700;border-radius:99px;padding:8px 14px;cursor:pointer;font-family:var(--font)}
+.devbar button:hover{background:var(--green-50)}
+.devbar button.on{background:var(--green-500);color:#fff}
+@media print{.devbar{display:none!important}}
 </style>
 </head>
 <body>
+<div id="app"></div>
+<script>
+/* =====================================================================
+   VERDEKO — DOSSIER DE POSE V3  (A4 paysage, 11 pages)
+   DATA = contrat collectAllData(). Prod: window.VERDEKO_PDF_DATA.
+   produit.image_cover = PHOTO 3 galerie (fallback photo 2).
+   ===================================================================== */
+const LOGO = 'https://verdeko.fr/wp-content/uploads/2026/04/logo-verdeko.webp';
 
-<!-- PAGE 1: COUVERTURE -->
-<div class="page cover">
-    <div class="cover-overlay"></div>
-    <div class="cover-card">
-        <img src="https://prodnative.fr/wp-content/uploads/2025/12/logo-verdeko.webp" class="cover-logo" alt="Verdeko">
-        <h1 class="cover-title">Guide d'Installation</h1>
-        <p class="cover-subtitle">Gazon Synthétique Premium</p>
-        <div class="cover-line"></div>
-        <p class="cover-label">Préparé pour</p>
-        <p class="cover-name">{{NOM_COMPLET}}</p>
-        <p class="cover-info">Produit : {{PRODUIT_NOM}} | Surface : {{SURFACE}} m²</p>
-        <p class="cover-date">Généré le {{DATE}}</p>
-    </div>
-    <div class="page-footer">www.verdeko.fr - contact@verdeko.fr</div>
-</div>
+const DATA = window.VERDEKO_PDF_DATA || {
+  meta:   { date:"15/06/2026", ref:"VDK-2026-1042" },
+  client: { prenom:"Stévan", nom:"Réhault", email:"stevan@diginative.fr",
+            telephone:"+33 6 50 01 61 35", nom_complet:"Stévan Réhault" },
+  terrain:{ forme:"Complexe", surface_nette:96, surface_brute:96,
+            dimensions:{A:12,B:10}, perimetre_ml:54, obstacles:[], largeur:10, longueur:12 },
+  produit:{ nom:"NATURA 50 mm", prix_m2:32.90, prix:32.90, prix_original:32.90,
+            id:"11966", recommande:true, largeurs_disponibles:[2,4],
+            image:"https://preprod.verdeko.fr/wp-content/uploads/2022/12/Gazon-synthetique-natura-4.jpg",
+            image_cover:"https://preprod.verdeko.fr/wp-content/uploads/2022/12/Gazon-synthetique-natura-4.jpg" },
+  calepinage:{
+    les:[ { ref:"L1a", largeur:4, longueur:3,  quantite:2, surface:24, leRefs:["L1a","L1b"] },
+          { ref:"L2",  largeur:4, longueur:12, quantite:1, surface:48, leRefs:["L2"] },
+          { ref:"L3",  largeur:2, longueur:12, quantite:1, surface:24, leRefs:["L3"] } ],
+    nb_les:4, orientation:"horizontal", chutes_percent:6.3, nb_jonctions:3, jonctions_ml:30, svg:"", description:"" },
+  questionnaire:{ type_sol:"terre", is_sol_meuble:true, animaux:"Oui", has_animaux:true,
+    soleil:"Plein soleil", aspect:"", usage:"Jardin & Vie quotidienne", type_projet:"Particulier",
+    sous_projet:"", projet_pro:"", sport:"" },
+  accessoires:{
+    geotextile:{ m2:111, rouleaux:5, description:"Anti-repousse, stabilise le sable" },
+    bande_jonction:{ ml:24, unites:3, description:"Pour assembler les lés bord à bord" },
+    pointes:{ boites:1, description:"Fixation du périmètre" },
+    enzyme:{ bouteilles:2, description:"Neutralise les odeurs animales" } }
+};
+const TOTAL_PAGES = 11;
 
-<!-- PAGE 2: RÉCAPITULATIF -->
-<div class="page">
-    <div class="page-header">
-        <span>Récapitulatif de votre projet</span>
-        <span class="page-num">1 / 10</span>
-    </div>
-    <div class="page-content">
-        <div class="recap-layout">
-            <!-- Produit en haut, bien en avant -->
-            <div class="recap-product-row">
-                <div class="recap-product-main">
-                    <!--IF:PRODUIT_IMAGE--><div class="recap-product-image"><img src="{{PRODUIT_IMAGE}}" alt=""></div><!--ENDIF:PRODUIT_IMAGE-->
-                    <div class="recap-product-info">
-                        <div class="recap-product-badge">✓ Recommandé</div>
-                        <div class="recap-product-name">{{PRODUIT_NOM}}</div>
-                        <div class="recap-product-prices">
-                            <!--IF:HAS_REMISE--><span class="recap-price-old">{{PRIX_ORIGINAL}} €/m²</span><!--ENDIF:HAS_REMISE-->
-                            <span class="recap-price">{{PRIX}} €/m²</span>
-                            <!--IF:HAS_REMISE--><span class="recap-discount">-{{REMISE_PCT}}%</span><!--ENDIF:HAS_REMISE-->
-                        </div>
-                    </div>
-                </div>
-                <div class="recap-total-box">
-                    <div class="recap-total-label">Surface à couvrir</div>
-                    <div class="recap-total-surface">{{SURFACE}} m²</div>
-                    <div class="recap-total-label">Total estimé</div>
-                    <div class="recap-total-price">{{TOTAL}} €</div>
-                </div>
-            </div>
-            <!-- Infos client et configuration en bas -->
-            <div class="recap-info-row">
-                <div class="recap-info-card">
-                    <div class="card-title">Vos informations</div>
-                    <div class="info-row"><span class="info-label">Nom :</span><span class="info-value">{{NOM_COMPLET}}</span></div>
-                    <!--IF:EMAIL--><div class="info-row"><span class="info-label">Email :</span><span class="info-value">{{EMAIL}}</span></div><!--ENDIF:EMAIL-->
-                    <!--IF:TELEPHONE--><div class="info-row"><span class="info-label">Tél :</span><span class="info-value">{{TELEPHONE}}</span></div><!--ENDIF:TELEPHONE-->
-                </div>
-                <div class="recap-info-card">
-                    <div class="card-title">Votre configuration</div>
-                    <div class="info-row"><span class="info-label">Forme :</span><span class="info-value">{{FORME}}</span></div>
-                    <div class="info-row"><span class="info-label">Type de sol :</span><span class="info-value">{{TYPE_SOL}}</span></div>
-                    <div class="info-row"><span class="info-label">Animaux :</span><span class="info-value">{{ANIMAUX_OUI_NON}}</span></div>
-                    <!--IF:ANIMAUX--><div class="badge-animaux">🐾 Consignes animaux incluses</div><!--ENDIF:ANIMAUX-->
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="page-footer">Verdeko - Guide d'installation personnalisé - www.verdeko.fr</div>
-</div>
+/* icones */
+const I = {
+  leaf:'<path d="M11 21c-5 0-8-4-8-9 0 0 6 1 9 5 2 3 1 8-1 4z"/><path d="M11 21C9 12 14 5 21 3c1 9-4 16-10 18z"/>',
+  eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
+  layers:'<path d="M12 2 2 7l10 5 10-5z"/><path d="M2 12l10 5 10-5M2 17l10 5 10-5"/>',
+  ruler:'<path d="M3 11 11 3l10 10-8 8z"/><path d="M7 7l2 2M9 13l2 2M13 9l2 2"/>',
+  scissors:'<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/>',
+  broom:'<path d="M19 4 9 14M4 20l4-1 7-7-3-3-7 7z"/><path d="M5 21c1-1 2-2 4-2"/>',
+  hammer:'<path d="M14 5l4 4-2 2-4-4z"/><path d="M12 7 4 15l3 3 8-8"/>',
+  tool:'<path d="M14 7a4 4 0 0 1-5 5L5 16l3 3 4-4a4 4 0 0 0 5-5z"/>',
+  droplet:'<path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/>',
+  paw:'<circle cx="6" cy="10" r="1.6"/><circle cx="10" cy="6.5" r="1.6"/><circle cx="14" cy="6.5" r="1.6"/><circle cx="18" cy="10" r="1.6"/><path d="M8 15c0-2.5 1.8-4 4-4s4 1.5 4 4c0 2-2 3-4 3s-4-1-4-3z"/>',
+  shield:'<path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5z"/>',
+  truck:'<rect x="1" y="4" width="14" height="12" rx="1"/><path d="M15 8h4l3 3v5h-7zM5.5 19.5a2 2 0 1 0 0 .01M18.5 19.5a2 2 0 1 0 0 .01"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  thermo:'<path d="M14 14V5a2 2 0 0 0-4 0v9a4 4 0 1 0 4 0z"/>',
+  alert:'<path d="M12 3 2 20h20z"/><path d="M12 9v5M12 17v.5"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  checkc:'<circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/>',
+  arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+  grid:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
+  compass:'<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5 11 11l-2.5 4.5L13 13z"/>',
+  mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+  pin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="2.6"/>',
+  pkg:'<path d="M12 2 21 7v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/>',
+  star:'<path d="M12 2l3 7 7 .5-5.5 4.5 2 7L12 17l-6.5 4 2-7L2 9.5 9 9z"/>',
+  flower:'<circle cx="12" cy="12" r="2.4"/><path d="M12 2a3 3 0 0 1 0 6 3 3 0 0 1 0-6zM12 16a3 3 0 0 1 0 6 3 3 0 0 1 0-6zM2 12a3 3 0 0 1 6 0 3 3 0 0 1-6 0zM16 12a3 3 0 0 1 6 0 3 3 0 0 1-6 0z"/>',
+  spray:'<rect x="7" y="8" width="9" height="13" rx="2"/><path d="M7 11h9M9 8V5h4v3M16 4h2M16 7h2M19 3v6"/>',
+  weed:'<path d="M12 21V9M12 13c-2-1-4-3-4-6 3 0 5 2 5 4M12 11c2-1 4-2 4-5-3 0-5 2-5 4"/>',
+  trowel:'<path d="M11 3v8M7 11h8l-4 9z"/>',
+  pin2:'<path d="M12 2v14M8 6l4-3 4 3"/><circle cx="12" cy="19" r="2.5"/>'
+};
+function svg(name,cls){ return '<svg class="ic '+(cls||'')+'" viewBox="0 0 24 24">'+I[name]+'</svg>'; }
+function ck(){ return '<span class="ckf"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>'; }
 
-<!-- PAGE 3: PLAN DE POSE -->
-<div class="page">
-    <div class="page-header">
-        <span>Plan de pose optimisé</span>
-        <span class="page-num">2 / 10</span>
-    </div>
-    <div class="page-content">
-        <div class="calep-layout">
-            <!-- Colonne gauche : SVG (2/3) -->
-            <div class="calep-svg-col">
-                <div class="calep-header">
-                    <span class="calep-surface">{{SURFACE_COMMANDER}} m²</span>
-                    <span class="calep-surface-label"> à commander</span>
-                    <div class="calep-orient">
-                        <span class="calep-orient-label">SENS DE POSE</span>
-                        <span class="calep-orient-btn {{ORIENT_H_CLASS}}">Horizontal</span>
-                        <span class="calep-orient-btn {{ORIENT_V_CLASS}}">Vertical</span>
-                    </div>
-                </div>
-                <!--IF:SVG--><div class="svg-container">{{SVG_CALEPINAGE}}</div><!--ENDIF:SVG-->
-            </div>
-            <!-- Colonne droite : Liste des lés (1/3) -->
-            <div class="calep-list-col">
-                <div class="calep-list-card">
-                    <div class="calep-list-title">Rouleaux à commander</div>
-                    <table class="calep-rolls-table">
-                        <thead><tr><th>Réf</th><th>Dimensions</th><th class="surface-col">m²</th></tr></thead>
-                        <tbody>{{ROULEAUX_ROWS}}</tbody>
-                    </table>
-                    <div class="calep-summary">
-                        <div class="calep-summary-row calep-summary-total">
-                            <span>Total</span>
-                            <span>{{TOTAL_M2}} m²</span>
-                        </div>
-                        <div class="calep-summary-row">
-                            <span>Chutes</span>
-                            <span>{{CHUTES_PCT}}%</span>
-                        </div>
-                        <!--IF:JONCTIONS--><div class="calep-summary-row">
-                            <span>Jonctions</span>
-                            <span>{{NB_JONCTIONS}}</span>
-                        </div><!--ENDIF:JONCTIONS-->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="page-footer">Verdeko - Guide d'installation personnalisé - www.verdeko.fr</div>
-</div>
+/* helpers */
+let D = DATA;
+function eur(n){ return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'; }
+function m2(n){ return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2})+' m²'; }
+function cap(s){ return s? s.charAt(0).toUpperCase()+s.slice(1):''; }
+function nb(n){ return String(n).replace('.',','); }
+let SURF = D.terrain.surface_brute || D.terrain.surface_nette;
+let TOTAL = SURF * D.produit.prix_m2;
+function lesRefs(){ const out=[]; D.calepinage.les.forEach(le=>{ const r=(le.leRefs&&le.leRefs.length)?le.leRefs:[le.ref]; r.forEach(x=>out.push({ref:x,largeur:le.largeur,longueur:le.longueur})); }); return out; }
 
-<!-- PAGE 4: PRÉPARATION SOL MEUBLE -->
-<!--IF:SOL_MEUBLE-->
-<div class="page">
-    <div class="page-header">
-        <span>Étape 1 : Préparation du terrain</span>
-        <span class="page-num">3 / 10</span>
-    </div>
-    <div class="page-content">
-        <div class="sol-badge"><strong>Votre sol :</strong> {{SOL_LABEL}}</div>
-        <div class="steps-grid-2">
-            <div class="step-card"><div class="step-num">1</div><div class="step-title">Désherbage</div><div class="step-desc">Éliminez herbes, racines et pierres. Appliquez un désherbant 2-3 semaines avant si besoin.</div></div>
-            <div class="step-card"><div class="step-num">2</div><div class="step-title">Décaissement</div><div class="step-desc">Décaissez 8-10 cm. Prévoyez une pente de 1-2% pour le drainage des eaux.</div></div>
-            <div class="step-card"><div class="step-num">3</div><div class="step-title">Grave</div><div class="step-desc">Étalez 5-8 cm de grave 0/20 ou 0/31.5. Compactez par passes croisées.</div></div>
-            <div class="step-card"><div class="step-num">4</div><div class="step-title">Sable</div><div class="step-desc">Ajoutez 2-3 cm de sable 0/4 ou 0/6 lavé. Tirez à la règle, compactez.</div></div>
-            <div class="step-card"><div class="step-num">5</div><div class="step-title">Géotextile</div><div class="step-desc">Déroulez sur toute la surface. Recouvrement 10 cm entre bandes.</div></div>
-            <div class="step-card"><div class="step-num">6</div><div class="step-title">Contrôle</div><div class="step-desc">Vérifiez planéité (tolérance 5mm). Sol propre, égalisé, drainé.</div></div>
-        </div>
-        <div class="alert"><strong>⚠️ Important :</strong> N'utilisez JAMAIS de sable de maçonnerie - uniquement du sable 0/4 ou 0/6 lavé</div>
-    </div>
-    <div class="page-footer">Verdeko - Guide d'installation personnalisé - www.verdeko.fr</div>
-</div>
-<!--ENDIF:SOL_MEUBLE-->
+function head(idx,section){
+  let dots=''; for(let i=2;i<=TOTAL_PAGES;i++) dots+='<i class="'+(i===idx?'on':'')+'"></i>';
+  return `<div class="pg-head">
+    <div class="hl"><img class="lg" src="${LOGO}" alt="Verdeko"><span class="hsep"></span><div class="ht">${section}</div></div>
+    <div class="hr"><div class="dots">${dots}</div><div class="pn"><b>${String(idx).padStart(2,'0')}</b> / ${TOTAL_PAGES}</div></div>
+  </div><div class="pg-rule"></div>`;
+}
+function foot(){ return `<div class="pg-foot"><div class="fl"><span class="fg">Verdeko</span> — Dossier de pose personnalisé · <span class="fg">www.verdeko.fr</span></div><div class="fr">Réf. ${D.meta.ref}</div></div>`; }
+function page(idx,section,body){ return `<div class="page">${head(idx,section)}<div class="pg-body">${body}</div>${foot()}</div>`; }
 
-<!--IF:SOL_DUR-->
-<div class="page">
-    <div class="page-header">
-        <span>Étape 1 : Préparation du terrain</span>
-        <span class="page-num">3 / 10</span>
+/* PAGE 1 — COUVERTURE (2/3 contenu blanc + 1/3 visuel gazon) */
+function pCover(){
+  return `<div class="page cover">
+    <div class="cnt">
+      <img class="logo" src="${LOGO}" alt="Verdeko">
+      <div class="spacer"></div>
+      <div class="eyebrow">Dossier de pose personnalisé</div>
+      <h1>Guide d'installation<br><span class="g">de votre gazon</span></h1>
+      <div class="tline">Gazon synthétique premium · plan de pose optimisé inclus</div>
+      <div class="blk"><div class="k">Votre gazon</div><div class="v">${D.produit.nom}<span class="sep">/</span>${m2(SURF)}</div></div>
+      <div class="blk client"><div class="k">Préparé pour</div><div class="v">${D.client.nom_complet}</div></div>
+      <div class="spacer"></div>
+      <div class="foot"><span>Édité le ${D.meta.date}</span><span class="dot"></span><span>Réf. ${D.meta.ref}</span></div>
+      <div class="site">www.verdeko.fr · contact@verdeko.fr</div>
     </div>
-    <div class="page-content">
-        <div class="sol-badge"><strong>Votre sol :</strong> {{SOL_LABEL}}</div>
-        <div class="steps-grid-2">
-            <div class="step-card"><div class="step-num">1</div><div class="step-title">Nettoyage</div><div class="step-desc">Nettoyez la surface au karcher. Éliminez mousses, graisses et résidus.</div></div>
-            <div class="step-card"><div class="step-num">2</div><div class="step-title">Réparation</div><div class="step-desc">Rebouchez fissures et trous avec du mortier de réparation.</div></div>
-            <div class="step-card"><div class="step-num">3</div><div class="step-title">Planéité</div><div class="step-desc">Vérifiez la planéité (tolérance 5mm). Ragréez si nécessaire.</div></div>
-            <div class="step-card"><div class="step-num">4</div><div class="step-title">Drainage</div><div class="step-desc">Vérifiez que l'eau s'évacue. Prévoyez des évacuations si stagnation.</div></div>
-            <div class="step-card"><div class="step-num">5</div><div class="step-title">Séchage</div><div class="step-desc">Laissez sécher complètement avant la pose du gazon.</div></div>
-            <div class="step-card"><div class="step-num">6</div><div class="step-title">Contrôle</div><div class="step-desc">Surface propre, sèche, plane et sans aspérités.</div></div>
-        </div>
-        <div class="alert"><strong>⚠️ Important :</strong> Assurez-vous que le support soit parfaitement sec avant la pose</div>
+    <div class="visual">
+      <img src="${D.produit.image_cover}" alt="" onerror="this.style.display='none'">
+      <div class="hero-pill">${svg('leaf')}${D.produit.nom}</div>
     </div>
-    <div class="page-footer">Verdeko - Guide d'installation personnalisé - www.verdeko.fr</div>
-</div>
-<!--ENDIF:SOL_DUR-->
+  </div>`;
+}
 
-<!-- PAGE 5: POSE -->
-<div class="page">
-    <div class="page-header">
-        <span>Étape 2 : Pose du gazon</span>
-        <span class="page-num">4 / 10</span>
-    </div>
-    <div class="page-content">
-        <div class="cols">
-            <div class="col-left">
-                <div class="card">
-                    <div class="card-title">Orientation des brins</div>
-                    <p style="color:#666; font-size:10pt; margin-bottom:10px;">Orientez les brins vers votre point de vue principal (baie vitrée, terrasse). Rendu plus naturel et lumineux.</p>
-                    <p style="color:var(--vert-primary); font-weight:600; font-size:10pt;">✓ Faites un test 'à blanc' avant fixation</p>
-                </div>
-            </div>
-            <div class="col-right">
-                <div class="card">
-                    <div class="card-title">Technique de découpe</div>
-                    <p style="color:#666; font-size:10pt; margin-bottom:10px;">Découpez TOUJOURS côté envers (latex). Suivez les lignes de couture pour des coupes nettes. Cutter lame neuve.</p>
-                    <p style="color:var(--vert-primary); font-weight:600; font-size:10pt;">✓ Retirez la bande sans fils si présente</p>
-                </div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-title">Votre ordre de pose personnalisé</div>
-            <div class="ordre-pose">{{ORDRE_POSE}}</div>
-            <p style="text-align:center; color:#888; font-size:9pt;">Déroulez avec précaution. Laissez se détendre 1-2h avant marouflage.</p>
-        </div>
-    </div>
-    <div class="page-footer">Verdeko - Guide d'installation personnalisé - www.verdeko.fr</div>
-</div>
+/* PAGE 2 — VOTRE PROJET + SOMMAIRE */
+function pProjet(){
+  const q=D.questionnaire;
+  const chips=[
+    ['Forme',cap(D.terrain.forme)],
+    ['Sol',cap(q.type_sol)+(q.is_sol_meuble?' · meuble':' · dur')],
+    ['Exposition',q.soleil||'—'],
+    ['Animaux',q.has_animaux?'Oui':'Non']
+  ].map(c=>`<span class="chip"><span class="k">${c[0]}</span>${c[1]}</span>`).join('');
+  const toc=[
+    ['1','Votre projet','02'],['2','Plan de pose optimisé','03'],['3','Matériel & préparation','04'],
+    ['4','Préparation du sol','05'],['5','Pose du gazon','06'],['6','Jonctions','07'],
+    ['7','Fixation & brossage','08'],['8','Entretien & garantie','09'],['9','Accessoires','10']
+  ].map(t=>`<div class="ti"><span class="tn">${t[0]}</span><span class="tt">${t[1]}</span><span class="tp">p. ${t[2]}</span></div>`).join('');
 
-<!-- PAGE 6: JONCTIONS -->
-<div class="page">
-    <div class="page-header">
-        <span>Étape 3 : Réalisation des jonctions</span>
-        <span class="page-num">5 / 10</span>
-    </div>
-    <div class="page-content">
-        <div style="text-align:center; font-size:13pt; margin-bottom:20px;">Jonctions à réaliser : <strong style="color:var(--vert-primary); font-size:16pt;">{{NB_JONCTIONS}}</strong></div>
-        <div class="steps-grid" style="grid-template-columns: repeat(4, 1fr);">
-            <div class="step-card"><div class="step-num">1</div><div class="step-title">Préparer</div><div class="step-desc">Rabattez les lés. Nettoyez les bords. Recoupez les lisières d'usine.</div></div>
-            <div class="step-card"><div class="step-num">2</div><div class="step-title">Positionner</div><div class="step-desc">Bande de jonction au centre, face collée vers le haut. Alignez bien.</div></div>
-            <div class="step-card"><div class="step-num">3</div><div class="step-title">Assembler</div><div class="step-desc">Rabattez un lé puis l'autre, bord à bord, sans chevauchement.</div></div>
-            <div class="step-card"><div class="step-num">4</div><div class="step-title">Coller</div><div class="step-desc">Pression forte et uniforme. Marouflez dans le sens des fibres.</div></div>
-        </div>
-        <div class="alert-danger">
-            <strong>⏱️ Temps de séchage : 24 heures minimum</strong>
-            <small>Ne marchez pas sur les jonctions pendant le séchage</small>
-        </div>
-        <div class="card">
-            <div class="card-title">Conseils de pro</div>
-            <ul class="tips-list">
-                <li>En cas de 'tirage', rouvrez 20-30 cm, réalignez et recollez progressivement.</li>
-                <li>Fenêtre idéale : temps sec, 10-25°C, vent faible. Évitez la pluie.</li>
-            </ul>
-        </div>
-    </div>
-    <div class="page-footer">Verdeko - Guide d'installation personnalisé - www.verdeko.fr</div>
-</div>
+  const body=`
+    <div class="eyebrow">Votre projet</div>
+    <h2 class="h-sec">En un <span class="hl-mark">coup d'œil</span></h2>
+    <p class="lead">Ce dossier reprend la configuration validée avec SmartGarden et vous guide, étape par étape, jusqu'à une pose impeccable.</p>
 
-<!-- PAGE 7: FIXATION SOL MEUBLE -->
-<!--IF:SOL_MEUBLE-->
-<div class="page">
-    <div class="page-header">
-        <span>Étape 4 : Fixation et brossage</span>
-        <span class="page-num">6 / 10</span>
-    </div>
-    <div class="page-content">
-        <div class="sol-badge"><strong>Sol meuble - Fixation par clous/grappins</strong></div>
-        <div class="steps-grid">
-            <div class="step-card"><div class="step-num">1</div><div class="step-title">Fixations</div><div class="step-desc">Clous 15-20 cm ou grappins galvanisés. 4-6 fixations par mètre linéaire.</div></div>
-            <div class="step-card"><div class="step-num">2</div><div class="step-title">Périmètre</div><div class="step-desc">Commencez par un coin. Clous en biais (45°) tous les 20-25 cm.</div></div>
-            <div class="step-card"><div class="step-num">3</div><div class="step-title">Contraintes</div><div class="step-desc">Renforcez angles, obstacles et zones de passage.</div></div>
+    <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:18px;margin-top:18px;flex:1;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <div class="card hero-prod">
+          <div class="hp-img"><img src="${D.produit.image}" alt="" onerror="this.style.display='none'"></div>
+          <div class="hp-body">
+            ${D.produit.recommande?'<div class="brow" style="margin-bottom:9px"><span class="badge gold">'+svg('star')+'Recommandé pour vous</span></div>':''}
+            <div class="hp-name">${D.produit.nom}</div>
+            <div class="hp-sub">${eur(D.produit.prix_m2)} / m² · ${q.usage||'Premium'}</div>
+            <div class="chips">${chips}</div>
+          </div>
+          <div class="hp-price"><div class="k">Total estimé</div><div class="v">${eur(TOTAL)}</div><div class="kk">${m2(SURF)} · livraison offerte</div></div>
         </div>
-        <div class="card" style="background: var(--vert-light); margin-top:20px;">
-            <div class="card-title">🧹 Brossage final - Étape indispensable</div>
-            <p style="color:#333; font-size:10pt;">Le brossage redresse les brins aplatis par le transport.<br>Utilisez un <strong>balai de cantonnier</strong>. Brossez sens <strong>INVERSE</strong> des brins.<br>Répétez après 1 semaine pour un résultat optimal.</p>
+        <div class="grid-4">
+          <div class="stat"><div class="v">${m2(SURF)}</div><div class="l">Surface</div></div>
+          <div class="stat"><div class="v">${D.calepinage.nb_les}</div><div class="l">Lés</div></div>
+          <div class="stat"><div class="v">${D.calepinage.nb_jonctions}</div><div class="l">Jonctions</div></div>
+          <div class="stat"><div class="v">${nb(D.calepinage.chutes_percent)}<span class="u">%</span></div><div class="l">Chutes</div></div>
         </div>
-    </div>
-    <div class="page-footer">Verdeko - Guide d'installation personnalisé - www.verdeko.fr</div>
-</div>
-<!--ENDIF:SOL_MEUBLE-->
+      </div>
 
-<!--IF:SOL_DUR-->
-<div class="page">
-    <div class="page-header">
-        <span>Étape 4 : Fixation et brossage</span>
-        <span class="page-num">6 / 10</span>
+      <div class="card card-pad" style="align-self:stretch">
+        <div class="card-h"><div class="ci">${svg('leaf')}</div><h3>Sommaire</h3></div>
+        <div class="toc">${toc}</div>
+      </div>
     </div>
-    <div class="page-content">
-        <div class="sol-badge"><strong>Sol dur - Fixation par colle</strong></div>
-        <div class="steps-grid">
-            <div class="step-card"><div class="step-num">1</div><div class="step-title">Bande périphérique</div><div class="step-desc">Appliquez une bande de colle double-face sur tout le pourtour.</div></div>
-            <div class="step-card"><div class="step-num">2</div><div class="step-title">Collage</div><div class="step-desc">Rabattez le gazon sur la bande adhésive en pressant fortement.</div></div>
-            <div class="step-card"><div class="step-num">3</div><div class="step-title">Finition</div><div class="step-desc">Vérifiez la tenue sur tout le périmètre.</div></div>
-        </div>
-        <div class="card" style="background: var(--vert-light); margin-top:20px;">
-            <div class="card-title">🧹 Brossage final - Étape indispensable</div>
-            <p style="color:#333; font-size:10pt;">Le brossage redresse les brins aplatis par le transport.<br>Utilisez un <strong>balai de cantonnier</strong>. Brossez sens <strong>INVERSE</strong> des brins.<br>Répétez après 1 semaine pour un résultat optimal.</p>
-        </div>
-    </div>
-    <div class="page-footer">Verdeko - Guide d'installation personnalisé - www.verdeko.fr</div>
-</div>
-<!--ENDIF:SOL_DUR-->
 
-<!-- PAGE 8: ENTRETIEN -->
-<div class="page">
-    <div class="page-header">
-        <span>Entretien de votre gazon</span>
-        <span class="page-num">7 / 10</span>
-    </div>
-    <div class="page-content">
-        <div class="cols">
-            <div class="col-left">
-                <div class="card">
-                    <div class="card-title">Les premiers jours</div>
-                    <ul class="tips-list">
-                        <li>Laissez le gazon se stabiliser 48h</li>
-                        <li>Brossez pour relever les brins</li>
-                        <li>Vérifiez les jonctions</li>
-                        <li>Répétez le brossage après 1 semaine</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="col-right">
-                <div class="card">
-                    <div class="card-title">Entretien régulier</div>
-                    <ul class="tips-list">
-                        <li><strong>Brossage :</strong> 3-4 fois par an minimum</li>
-                        <li><strong>Feuilles :</strong> souffleur ou balai</li>
-                        <li><strong>Taches :</strong> eau savonneuse tiède</li>
-                        <li><strong>Désinfection :</strong> 1 fois par an</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <!--IF:ANIMAUX-->
-        <div class="animaux-card">
-            <div class="card-title">🐾 Consignes spéciales animaux</div>
-            <div class="animaux-grid">
-                <div class="animaux-item"><strong>Zone toilette</strong><span>Définissez une zone préférée, nettoyez-la quotidiennement.</span></div>
-                <div class="animaux-item"><strong>Arrosage</strong><span>Arrosez 2-3 fois par semaine pour diluer l'urine.</span></div>
-                <div class="animaux-item"><strong>Nettoyant</strong><span>Produit enzymatique spécial gazon synthétique.</span></div>
-                <div class="animaux-item"><strong>Délai pose</strong><span>Attendez 48h avant de laisser vos animaux accéder.</span></div>
-            </div>
-        </div>
-        <!--ENDIF:ANIMAUX-->
-        <div class="success-box"><strong>✨ Un brossage régulier conserve l'aspect neuf pendant 10-15 ans</strong></div>
-    </div>
-    <div class="page-footer">Verdeko - Guide d'installation personnalisé - www.verdeko.fr</div>
-</div>
+    <div class="callout info" style="margin-top:18px">${svg('checkc')}<div class="ct"><b>Conseil.</b> Lisez ce dossier en entier avant de commencer, rassemblez le matériel de la page 4, puis suivez les étapes dans l'ordre.</div></div>`;
+  return page(2,'Votre projet',body);
+}
 
-<!-- PAGE 9: ACCESSOIRES -->
-<div class="page">
-    <div class="page-header">
-        <span>Accessoires recommandés</span>
-        <span class="page-num">8 / 10</span>
-    </div>
-    <div class="page-content">
-        <div class="acc-grid">
-            <!--IF:SOL_MEUBLE-->
-            <div class="acc-item">
-                <div class="acc-info"><div class="acc-name">Géotextile anti-repousse</div><div class="acc-desc">Empêche la repousse des mauvaises herbes</div></div>
-                <div class="acc-qty">{{GEO_QTY}}</div>
-            </div>
-            <!--ENDIF:SOL_MEUBLE-->
-            <!--IF:JONCTIONS-->
-            <div class="acc-item">
-                <div class="acc-info"><div class="acc-name">Bande de jonction</div><div class="acc-desc">Pour {{NB_JONCTIONS}} jonction(s)</div></div>
-                <div class="acc-qty">{{JONC_QTY}}</div>
-            </div>
-            <!--ENDIF:JONCTIONS-->
-            <!--IF:SOL_MEUBLE-->
-            <div class="acc-item">
-                <div class="acc-info"><div class="acc-name">Clous de fixation</div><div class="acc-desc">Fixation périphérique</div></div>
-                <div class="acc-qty">{{CLOUS_QTY}}</div>
-            </div>
-            <!--ENDIF:SOL_MEUBLE-->
-            <!--IF:ANIMAUX-->
-            <div class="acc-item">
-                <div class="acc-info"><div class="acc-name">Nettoyant enzymatique</div><div class="acc-desc">Neutralise les odeurs</div></div>
-                <div class="acc-qty">{{NETTOYANT_QTY}}</div>
-            </div>
-            <!--ENDIF:ANIMAUX-->
-        </div>
-        <p style="text-align:center; color:#888; font-size:9pt; margin-top:30px;">Ces quantités sont calculées automatiquement selon votre configuration</p>
-    </div>
-    <div class="page-footer">Verdeko - Guide d'installation personnalisé - www.verdeko.fr</div>
-</div>
+/* PAGE 3 — PLAN DE POSE */
+function samplePlanSVG(){
+  return `<svg viewBox="0 0 560 430" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style="display:block">
+    <defs><pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M28 0H0V28" fill="none" stroke="#edeae2" stroke-width="1"/></pattern></defs>
+    <rect x="0" y="0" width="560" height="430" fill="#fdfcf9"/>
+    <rect x="60" y="34" width="448" height="356" fill="url(#grid)"/>
+    <g stroke="#3d7a3d" stroke-width="2" stroke-linejoin="round">
+      <rect x="60" y="34" width="150" height="150" fill="#6aac6a" fill-opacity=".55"/>
+      <rect x="358" y="34" width="150" height="150" fill="#7bb87b" fill-opacity=".55"/>
+      <rect x="60" y="184" width="448" height="120" fill="#5aa05a" fill-opacity=".5"/>
+      <rect x="60" y="304" width="448" height="86" fill="#83bd83" fill-opacity=".5"/>
+    </g>
+    <g stroke="#d9682f" stroke-width="2" stroke-dasharray="7 6"><line x1="60" y1="184" x2="508" y2="184"/><line x1="60" y1="304" x2="508" y2="304"/></g>
+    <g font-family="sans-serif" font-weight="700" font-size="13">
+      <g><rect x="112" y="100" width="46" height="22" rx="5" fill="#1f2d26"/><text x="135" y="115" fill="#fff" text-anchor="middle">L1a</text></g>
+      <g><rect x="410" y="100" width="46" height="22" rx="5" fill="#1f2d26"/><text x="433" y="115" fill="#fff" text-anchor="middle">L1b</text></g>
+      <g><rect x="261" y="233" width="40" height="22" rx="5" fill="#1f2d26"/><text x="281" y="248" fill="#fff" text-anchor="middle">L2</text></g>
+      <g><rect x="261" y="336" width="40" height="22" rx="5" fill="#1f2d26"/><text x="281" y="351" fill="#fff" text-anchor="middle">L3</text></g>
+    </g>
+    <g><circle cx="284" cy="404" r="13" fill="#c9a227" stroke="#fff" stroke-width="2.5"/>
+      <g transform="translate(284,404)" stroke="#fff" stroke-width="1.7" fill="none"><path d="M-6 0s2.5-4 6-4 6 4 6 4-2.5 4-6 4-6-4-6-4z"/><circle cx="0" cy="0" r="1.8"/></g></g>
+    <g stroke="#9aa39b" stroke-width="1" font-family="sans-serif" font-size="11" fill="#6b7770" font-weight="700">
+      <line x1="60" y1="410" x2="508" y2="410"/><text x="284" y="424" text-anchor="middle">12 m</text>
+      <line x1="528" y1="34" x2="528" y2="390"/><text x="540" y="215" text-anchor="middle" transform="rotate(90 540 215)">10 m</text></g>
+  </svg>`;
+}
+function pPlan(){
+  const planInner = (D.calepinage.svg && D.calepinage.svg.indexOf('<svg')!==-1) ? D.calepinage.svg : samplePlanSVG();
+  const rolls = D.calepinage.les.map(le=>{ const q=le.quantite||1; const s=le.largeur*le.longueur*q;
+    return `<tr><td><span class="tag">${le.ref}</span></td><td>${q>1?q+'× ':'1× '}${le.largeur} m × ${Number(le.longueur).toFixed(1)} m</td><td class="r">${m2(s)}</td></tr>`; }).join('');
+  const body=`
+    <div class="eyebrow">Plan de pose optimisé</div>
+    <h2 class="h-sec">Votre <span class="hl-mark">calepinage</span></h2>
+    <p class="lead">Découpe optimisée pour réduire les chutes et les jonctions. Respectez le sens des lés : <b>tous les brins orientés dans la même direction</b>.</p>
 
-<!-- PAGE 10: FINALE -->
-<div class="page finale">
-    <div class="cover-overlay"></div>
-    <div class="finale-card">
-        <h1 class="finale-title">Bonne installation !</h1>
-        <p class="finale-subtitle">Notre équipe reste à votre disposition</p>
-        <div class="finale-contacts">
-            <div class="finale-contact"><span class="finale-contact-label">Site web :</span><span class="finale-contact-value">www.verdeko.fr</span></div>
-            <div class="finale-contact"><span class="finale-contact-label">Email :</span><span class="finale-contact-value">contact@verdeko.fr</span></div>
-            <div class="finale-contact"><span class="finale-contact-label">Téléphone :</span><span class="finale-contact-value">02 40 XX XX XX</span></div>
+    <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:18px;margin-top:18px;flex:1;align-items:stretch">
+      <div class="card" style="display:flex;flex-direction:column;overflow:hidden">
+        <div class="card-pad" style="padding-bottom:0">
+          <div class="brow"><span class="badge slate">${svg('compass')}Sens : ${cap(D.calepinage.orientation)}</span><span class="badge green">${svg('eye')}Brins vers votre point de vue</span></div>
         </div>
-        <img src="https://prodnative.fr/wp-content/uploads/2025/12/logo-verdeko.webp" class="finale-logo" alt="Verdeko">
-    </div>
-    <div class="page-footer" style="background:transparent; color:rgba(255,255,255,0.8);">Verdeko - Guide personnalisé - {{ANNEE}}</div>
-</div>
+        <div style="flex:1;margin:14px 20px 20px;border:1.5px solid var(--line);border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:0">${planInner}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card card-pad" style="flex:1">
+          <div class="card-h"><div class="ci">${svg('pkg')}</div><h3>Rouleaux à commander</h3></div>
+          <table class="tbl"><thead><tr><th>Réf</th><th>Dimensions</th><th class="r">m²</th></tr></thead><tbody>${rolls}</tbody>
+            <tfoot><tr><td colspan="2">Total</td><td class="r">${m2(SURF)}</td></tr></tfoot></table>
+        </div>
+        <div class="grid-3">
+          <div class="stat"><div class="v">${D.calepinage.nb_les}</div><div class="l">Lés</div></div>
+          <div class="stat"><div class="v">${D.calepinage.nb_jonctions}</div><div class="l">Jonctions</div></div>
+          <div class="stat"><div class="v">${nb(D.calepinage.chutes_percent)}<span class="u">%</span></div><div class="l">Chutes</div></div>
+        </div>
+        <div class="callout info">${svg('eye')}<div class="ct">La pastille dorée indique <b>votre point de vue principal</b> : c'est vers lui que pointent tous les brins.</div></div>
+      </div>
+    </div>`;
+  return page(3,'Plan de pose optimisé',body);
+}
 
+/* PAGE 4 — MATERIEL & PREPARATION */
+function pMateriel(){
+  const a=D.accessoires;
+  const matos=[
+    [svg('scissors'),'Cutter + lames neuves','rechange'],
+    [svg('ruler'),'Grande règle métallique',''],
+    [svg('ruler'),'Mètre ruban + cordeau',''],
+    [svg('broom'),'Balai de cantonnier','poils durs'],
+    [svg('hammer'),'Maillet caoutchouc',''],
+    [svg('tool'),D.questionnaire.is_sol_meuble?'Plaque vibrante':'Aspirateur / souffleur','location'],
+    [svg('trowel'),'Brouette, pelle, râteau',''],
+    [svg('shield'),'Gants de protection','']
+  ].map(m=>`<div class="chk">${m[0]}<span>${m[1]}</span>${m[2]?'<span class="s">'+m[2]+'</span>':''}</div>`).join('');
+  const fourn=[
+    [svg('grid'),D.produit.nom, m2(SURF)+' — '+D.calepinage.nb_les+' lés à découper'],
+    [svg('layers'),'Géotextile anti-repousse', a.geotextile.m2+' m² ('+a.geotextile.rouleaux+' rouleaux de 25 m)'],
+    [svg('tool'),'Bande de jonction + colle', a.bande_jonction.ml+' ml — '+a.bande_jonction.unites+' jonction(s)'],
+    [svg('pin2'),'Pointes / grappins', a.pointes.boites+' boîte(s) — fixation du périmètre']
+  ].map(f=>`<div class="row" style="padding:11px 14px"><span class="ri">${f[0]}</span><div class="rt"><div class="a">${f[1]}</div><div class="b">${f[2]}</div></div></div>`).join('');
+  const body=`
+    <div class="eyebrow">Avant de commencer</div>
+    <h2 class="h-sec">Matériel & <span class="hl-mark">préparation</span></h2>
+    <p class="lead">Rassemblez tout le matériel avant le jour J. Une pose bien préparée se fait en confiance, sans interruption.</p>
+
+    <div class="grid-2" style="margin-top:16px;align-items:start">
+      <div class="card card-pad">
+        <div class="card-h"><div class="ci">${svg('tool')}</div><h3>Outils à prévoir</h3></div>
+        <div class="checks" style="grid-template-columns:1fr 1fr;gap:13px 22px">${matos}</div>
+      </div>
+      <div class="card card-pad">
+        <div class="card-h"><div class="ci">${svg('pkg')}</div><h3>Fournitures de votre projet</h3></div>
+        <div style="display:flex;flex-direction:column;gap:8px">${fourn}</div>
+      </div>
+    </div>
+
+    <div class="card card-pad" style="margin-top:16px;padding:16px 23px">
+      <div class="cond">
+        <div><div class="ci2">${svg('thermo')}</div><div class="ct2">10 – 25 °C</div><div class="cd2">Temps sec, vent faible</div></div>
+        <div class="vsep"></div>
+        <div><div class="ci2">${svg('clock')}</div><div class="ct2">1 à 2 jours</div><div class="cd2">pour environ 100 m²</div></div>
+        <div class="vsep"></div>
+        <div><div class="ci2">${svg('checkc')}</div><div class="ct2">Accessible</div><div class="cd2">avec méthode et patience</div></div>
+      </div>
+    </div>
+
+    <div class="callout danger" style="margin-top:16px">${svg('alert')}<div class="ct"><b>Les 4 erreurs qui ruinent une pose :</b> sable de maçonnerie au lieu de sable lavé · brins orientés différemment d'un lé à l'autre · jonctions sous la pluie · support insuffisamment compacté.</div></div>`;
+  return page(4,'Matériel & préparation',body);
+}
+
+/* COUPE DU SOL */
+function coupeSVG(meuble){
+  if(meuble){
+    return `<svg viewBox="0 0 420 200" width="100%" preserveAspectRatio="xMidYMid meet">
+      <g stroke="#3d7a3d" stroke-width="2" stroke-linecap="round">${Array.from({length:21}).map((_,i)=>`<line x1="${30+i*14}" y1="34" x2="${28+i*14}" y2="20"/>`).join('')}</g>
+      <rect x="24" y="34" width="290" height="14" fill="#509350"/><rect x="24" y="48" width="290" height="9" fill="#caa15a"/>
+      <rect x="24" y="57" width="290" height="22" fill="#d9c7a3"/><rect x="24" y="79" width="290" height="38" fill="#b9b1a0"/>
+      <rect x="24" y="117" width="290" height="44" fill="#8a7b66"/>
+      <g font-family="sans-serif" font-size="11" font-weight="700" fill="#23272a">
+        <line x1="318" y1="41" x2="334" y2="41" stroke="#9aa39b"/><text x="339" y="44">Gazon synthétique</text>
+        <line x1="318" y1="52" x2="334" y2="52" stroke="#9aa39b"/><text x="339" y="55" fill="#6b7770" font-weight="400">Géotextile</text>
+        <line x1="318" y1="68" x2="334" y2="68" stroke="#9aa39b"/><text x="339" y="71">Sable 0/4 lavé · 2–3 cm</text>
+        <line x1="318" y1="98" x2="334" y2="98" stroke="#9aa39b"/><text x="339" y="101">Grave 0/20 · 5–8 cm</text>
+        <line x1="318" y1="139" x2="334" y2="139" stroke="#9aa39b"/><text x="339" y="142" fill="#6b7770" font-weight="400">Sol support (terre)</text></g>
+    </svg>`;
+  }
+  return `<svg viewBox="0 0 420 200" width="100%" preserveAspectRatio="xMidYMid meet">
+    <g stroke="#3d7a3d" stroke-width="2" stroke-linecap="round">${Array.from({length:21}).map((_,i)=>`<line x1="${30+i*14}" y1="56" x2="${28+i*14}" y2="42"/>`).join('')}</g>
+    <rect x="24" y="56" width="290" height="14" fill="#509350"/><rect x="24" y="70" width="290" height="20" fill="#cdc6bb"/><rect x="24" y="90" width="290" height="58" fill="#b4b4b4"/>
+    <g font-family="sans-serif" font-size="11" font-weight="700" fill="#23272a">
+      <line x1="318" y1="63" x2="334" y2="63" stroke="#9aa39b"/><text x="339" y="66">Gazon synthétique</text>
+      <line x1="318" y1="80" x2="334" y2="80" stroke="#9aa39b"/><text x="339" y="83" fill="#6b7770" font-weight="400">Sous-couche drainante (option)</text>
+      <line x1="318" y1="119" x2="334" y2="119" stroke="#9aa39b"/><text x="339" y="122">Dalle béton / support dur</text></g>
+  </svg>`;
+}
+
+/* PAGE 5 — ETAPE 1 */
+function pSol(){
+  const meuble=D.questionnaire.is_sol_meuble;
+  const sM=[
+    ['Désherbage','Éliminez herbes, racines et grosses pierres. Sur une pelouse, un désherbant total 2 à 3 semaines avant facilite le décapage.'],
+    ['Décaissement','Creusez sur <b>8 à 10 cm</b>. Ménagez une pente de 1 à 2 % vers l\'extérieur pour le drainage.'],
+    ['Grave concassée','Étalez <b>5 à 8 cm</b> de grave 0/20. Réglez à la règle, compactez par passes croisées.'],
+    ['Sable de nivellement','<b>2 à 3 cm</b> de sable 0/4 <b>lavé</b>. Tirez à la règle, compactez à nouveau.'],
+    ['Géotextile','Déroulez le feutre anti-repousse, <b>10 cm de recouvrement</b> entre les bandes.'],
+    ['Contrôle final','Planéité à la règle (tolérance 5 mm sous 3 m). Surface propre, ferme et drainante.']
+  ];
+  const sD=[
+    ['Nettoyage','Balayez et dépoussiérez la dalle. Retirez mousses et résidus. Surface saine et sèche.'],
+    ['Vérification du drainage','Contrôlez l\'écoulement et la pente. Dégagez les évacuations si nécessaire.'],
+    ['Réparations','Rebouchez fissures et trous, poncez les aspérités pour une dalle plane.'],
+    ['Sous-couche (option)','Sur dalle non drainante ou pour le confort, posez une sous-couche drainante.'],
+    ['Contrôle final','Surface propre, sèche et plane : vous pouvez poser directement le gazon.']
+  ];
+  const steps=(meuble?sM:sD).map((s,i)=>`<div class="step"><div class="nb">${i+1}</div><div class="st-b"><div class="t">${s[0]}</div><div class="d">${s[1]}</div></div></div>`).join('');
+  const body=`
+    <div class="eyebrow">Étape 1 sur 4</div>
+    <h2 class="h-sec">Préparation <span class="hl-mark">du sol</span></h2>
+    <p class="lead">Votre sol : <b>${meuble?'sol meuble (terre, sable)':'sol dur (dalle, béton)'}</b>. C'est l'étape la plus déterminante : un support bien préparé garantit un rendu plan et durable.</p>
+
+    <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:22px;margin-top:18px;flex:1;align-items:start">
+      <div class="steps">${steps}</div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card card-pad"><div class="card-h"><div class="ci">${svg('layers')}</div><h3>Coupe du support</h3></div><div class="diagram" style="height:172px">${coupeSVG(meuble)}</div></div>
+        <div class="callout warn">${svg('alert')}<div class="ct">${meuble?'<b>Jamais de sable de maçonnerie</b> : il fait croûte et retient l\'eau. Uniquement du sable 0/4 ou 0/6 lavé.':'<b>Ne négligez pas le drainage</b> : une eau stagnante crée odeurs et décollements.'}</div></div>
+      </div>
+    </div>
+    <div class="callout info" style="margin-top:16px">${ck()}<div class="ct"><b>Le détail qui change tout :</b> le compactage est l'étape la plus souvent bâclée. Un support mal compacté se tasse et fait apparaître des creux après quelques mois.</div></div>`;
+  return page(5,'Étape 1 — Préparation du sol',body);
+}
+
+/* PAGE 6 — ETAPE 2 */
+function orientSVG(){
+  return `<svg viewBox="0 0 280 170" width="100%" preserveAspectRatio="xMidYMid meet">
+    <rect x="20" y="18" width="200" height="112" rx="8" fill="#eef4ee" stroke="#cfe0cf"/>
+    <g stroke="#3d7a3d" stroke-width="1.6" stroke-linecap="round" opacity=".85">${Array.from({length:5}).map((_,r)=>Array.from({length:8}).map((__,c)=>`<line x1="${36+c*22}" y1="${34+r*20}" x2="${36+c*22}" y2="${44+r*20}"/>`).join('')).join('')}</g>
+    <g stroke="#509350" stroke-width="2">${Array.from({length:4}).map((_,c)=>`<line x1="${64+c*28}" y1="142" x2="${64+c*28}" y2="150"/><path d="M${60+c*28} 146l4 4 4-4" fill="none"/>`).join('')}</g>
+    <circle cx="120" cy="158" r="11" fill="#c9a227"/><g transform="translate(120,158)" stroke="#fff" stroke-width="1.6" fill="none"><path d="M-5 0s2-3.5 5-3.5 5 3.5 5 3.5-2 3.5-5 3.5-5-3.5-5-3.5z"/><circle cx="0" cy="0" r="1.5"/></g>
+    <text x="120" y="12" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#6b7770">Terrain</text>
+    <text x="150" y="162" font-family="sans-serif" font-size="10.5" font-weight="700" fill="#a87b14">Votre terrasse</text>
+  </svg>`;
+}
+function pPose(){
+  const refs=lesRefs();
+  const flow=refs.map((r,i)=>`<div class="fi"><span class="n">${i+1}</span><div><div class="lt">${r.ref}</div><div class="ld">${r.largeur} m × ${Number(r.longueur).toFixed(1)} m</div></div></div>`).join('<svg class="ic ar" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>');
+  const body=`
+    <div class="eyebrow">Étape 2 sur 4</div>
+    <h2 class="h-sec">Pose <span class="hl-mark">du gazon</span></h2>
+    <p class="lead">Déroulez chaque lé dans l'ordre du plan, en respectant strictement le sens des brins. Laissez le gazon s'acclimater avant la fixation.</p>
+
+    <div class="grid-2" style="margin-top:14px;align-items:start">
+      <div class="card card-pad">
+        <div class="card-h"><div class="ci">${svg('eye')}</div><h3>Orientation des brins</h3></div>
+        <p class="soft" style="font-size:12.5px;line-height:1.55;margin-bottom:6px">Orientez tous les brins vers votre <b style="color:var(--ink)">point de vue principal</b> (terrasse, baie vitrée) : rendu plus dense et naturel. Essai à blanc avant fixation.</p>
+        <div class="diagram" style="height:128px">${orientSVG()}</div>
+      </div>
+      <div class="card card-pad">
+        <div class="card-h"><div class="ci">${svg('scissors')}</div><h3>Technique de découpe</h3></div>
+        <div class="steps">
+          <div class="step"><div class="nb">1</div><div class="st-b"><div class="t">Découpez côté envers</div><div class="d">Toujours sur le dos (latex), jamais sur les brins. Suivez les lignes de couture.</div></div></div>
+          <div class="step"><div class="nb">2</div><div class="st-b"><div class="t">Lame neuve, traits francs</div><div class="d">Changez la lame dès qu'elle accroche : une lame émoussée déchire le support.</div></div></div>
+          <div class="step"><div class="nb">3</div><div class="st-b"><div class="t">Retirez les lisières d'usine</div><div class="d">Recoupez le bord sans brins sur les côtés à jointer pour un raccord invisible.</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-pad" style="margin-top:14px">
+      <div class="card-h"><div class="ci">${svg('arrow')}</div><h3>Votre ordre de pose</h3><span class="meta">${refs.length} lés</span></div>
+      <div class="flow">${flow}</div>
+      <div class="callout info" style="margin-top:13px">${svg('clock')}<div class="ct">Après déroulage, laissez le gazon <b>se détendre 1 à 2 h</b> avant le marouflage : il reprend sa planéité.</div></div>
+    </div>`;
+  return page(6,'Étape 2 — Pose du gazon',body);
+}
+
+/* PAGE 7 — ETAPE 3 */
+function jointSVG(){
+  return `<svg viewBox="0 0 300 140" width="100%" preserveAspectRatio="xMidYMid meet">
+    <g stroke="#3d7a3d" stroke-width="2" stroke-linecap="round">${Array.from({length:9}).map((_,i)=>`<line x1="${40+i*14}" y1="52" x2="${38+i*14}" y2="38"/>`).join('')}${Array.from({length:9}).map((_,i)=>`<line x1="${168+i*14}" y1="52" x2="${166+i*14}" y2="38"/>`).join('')}</g>
+    <rect x="30" y="52" width="120" height="10" fill="#509350"/><rect x="150" y="52" width="120" height="10" fill="#509350"/>
+    <rect x="120" y="68" width="60" height="14" rx="2" fill="#caa15a"/><g fill="#a87b14">${[128,142,156,170].map(x=>`<circle cx="${x}" cy="66" r="2"/>`).join('')}</g>
+    <line x1="150" y1="34" x2="150" y2="90" stroke="#d9682f" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <g font-family="sans-serif" font-size="10.5" font-weight="700" fill="#23272a">
+      <text x="150" y="108" text-anchor="middle">Bande de jonction (face collée vers le haut)</text>
+      <text x="150" y="124" text-anchor="middle" fill="#6b7770" font-weight="400">Lés bord à bord, sans chevauchement</text></g>
+  </svg>`;
+}
+function pJonctions(){
+  const has=D.calepinage.nb_jonctions>0;
+  const cards=[
+    ['Préparer','Rabattez les lés, nettoyez les bords. Recoupez les lisières d\'usine.'],
+    ['Positionner','Bande centrée sur le raccord, face collée vers le haut. Alignez avec soin.'],
+    ['Assembler','Rabattez un lé puis l\'autre, bord à bord, sans chevauchement.'],
+    ['Coller','Pression forte et uniforme. Maroufflez du centre vers les bords.']
+  ].map((s,i)=>`<div class="card card-pad" style="padding:16px 17px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:7px"><span class="numdot" style="width:28px;height:28px;font-size:13px">${i+1}</span><div style="font-size:13.5px;font-weight:700">${s[0]}</div></div><div class="soft" style="font-size:12px;line-height:1.5">${s[1]}</div></div>`).join('');
+  const body=has?`
+    <div class="eyebrow">Étape 3 sur 4</div>
+    <h2 class="h-sec">Réaliser les <span class="hl-mark">jonctions</span></h2>
+    <p class="lead">Vous avez <b>${D.calepinage.nb_jonctions} jonction(s)</b> à réaliser. C'est l'opération la plus technique : prenez votre temps, le résultat doit être invisible.</p>
+    <div class="grid-4" style="margin-top:18px">${cards}</div>
+    <div class="grid-2" style="margin-top:18px;align-items:start">
+      <div class="card card-pad"><div class="card-h"><div class="ci">${svg('layers')}</div><h3>Détail d'une jonction</h3></div><div class="diagram" style="height:150px">${jointSVG()}</div></div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="callout danger">${svg('clock')}<div class="ct"><b>Séchage : 24 h minimum.</b> Ne marchez pas sur les jonctions tant que la colle n'a pas pris.</div></div>
+        <div class="card card-pad"><div class="card-h"><div class="ci">${svg('star')}</div><h3>Conseils de pro</h3></div>
+          <div class="checks">
+            <div class="chk">${ck()}<span>En cas de « tirage », rouvrez 20–30 cm et recollez progressivement.</span></div>
+            <div class="chk">${ck()}<span>Fenêtre idéale : temps sec, 10–25 °C, vent faible.</span></div>
+            <div class="chk">${ck()}<span>Lestez la jonction (planches + poids) pendant le séchage.</span></div>
+          </div></div>
+      </div>
+    </div>`:`
+    <div class="eyebrow">Étape 3 sur 4</div>
+    <h2 class="h-sec">Aucune <span class="hl-mark">jonction</span></h2>
+    <p class="lead">Votre surface se pose en un seul lé : pas de jonction à réaliser. Vérifiez la planéité avant la fixation.</p>
+    <div class="callout info" style="margin-top:18px">${ck()}<div class="ct">Profitez-en pour faire un dernier essai à blanc et confirmer le sens des brins avant de fixer.</div></div>`;
+  return page(7,'Étape 3 — Jonctions',body);
+}
+
+/* PAGE 8 — ETAPE 4 */
+function pFixation(){
+  const meuble=D.questionnaire.is_sol_meuble;
+  const fix=(meuble?[
+    ['Fixations','Clous 15–20 cm ou grappins galvanisés. 4 à 6 fixations par mètre linéaire.'],
+    ['Périmètre','Commencez par un coin. Clous en biais (45°) tous les 20–25 cm sur le pourtour.'],
+    ['Points sensibles','Renforcez angles, contours d\'obstacles et zones de passage.']
+  ]:[
+    ['Colle / double-face','Fixez le périmètre au cordon de colle PU ou au ruban double-face extérieur.'],
+    ['Jonctions','Maintenez les raccords collés sur toute leur longueur.'],
+    ['Points sensibles','Soignez les angles et bords exposés au vent.']
+  ]).map((s,i)=>`<div class="step"><div class="nb">${i+1}</div><div class="st-b"><div class="t">${s[0]}</div><div class="d">${s[1]}</div></div></div>`).join('');
+  const body=`
+    <div class="eyebrow">Étape 4 sur 4</div>
+    <h2 class="h-sec">Fixation & <span class="hl-mark">brossage</span></h2>
+    <p class="lead">Dernière ligne droite : ${meuble?'fixation par clous ou grappins':'fixation sur support dur'}, puis le brossage qui révèle l'aspect neuf de votre gazon.</p>
+
+    <div class="grid-2" style="margin-top:18px;align-items:start">
+      <div class="card card-pad"><div class="card-h"><div class="ci">${svg('pin2')}</div><h3>${meuble?'Fixation par clous / grappins':'Fixation sur dalle'}</h3></div><div class="steps">${fix}</div></div>
+      <div class="card card-pad" style="background:var(--green-50);border-color:var(--green-100)">
+        <div class="card-h"><div class="ci" style="background:#fff">${svg('broom')}</div><h3>Brossage final — indispensable</h3></div>
+        <p class="soft" style="font-size:12.5px;line-height:1.6">Le brossage redresse les brins aplatis par le transport. C'est lui qui donne le rendu « pelouse fraîche ».</p>
+        <div class="checks" style="margin-top:12px">
+          <div class="chk">${ck()}<span>Balai de cantonnier à poils durs.</span></div>
+          <div class="chk">${ck()}<span>Brossez à <b>contresens</b> des brins.</span></div>
+          <div class="chk">${ck()}<span>Répétez après 1 semaine pour un résultat optimal.</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="callout info" style="margin-top:18px">${svg('checkc')}<div class="ct">Sur sol meuble, un <b>lestage en sable de silice</b> (optionnel) saupoudré puis brossé alourdit le gazon, redresse les brins et améliore la tenue dans le temps.</div></div>`;
+  return page(8,'Étape 4 — Fixation & brossage',body);
+}
+
+/* PAGE 9 — ENTRETIEN */
+/* projectTips mappé sur les vrais libellés Gravity Forms (form 2) :
+   91 usage · 92 projet_pro · 93 sport · 94 animaux · 95 soleil. Aspect (96) ignoré (placeholders). */
+function projectTips(){
+  const q=D.questionnaire;
+  const u=(q.usage||'').toLowerCase();
+  const p=((q.projet_pro||'')+' '+(q.sous_projet||'')).toLowerCase();
+  const sp=(q.sport||'').toLowerCase();
+  const s=(q.soleil||'').toLowerCase();
+  const t=[];
+  // usage principal (champ 91)
+  if(u.indexOf('piscine')>-1) t.push([svg('droplet'),'Bord de piscine','Gazon résistant au chlore et au sel. Soignez le drainage et la fixation près des margelles.']);
+  if(u.indexOf('balcon')>-1||u.indexOf('terrasse')>-1) t.push([svg('layers'),'Terrasse & balcon','Pas de décaissement : posez sur support propre, soignez l\'écoulement de l\'eau et fixez bien le périmètre.']);
+  if(u.indexOf('passage')>-1||u.indexOf('intensif')>-1||u.indexOf('jeux')>-1) t.push([svg('tool'),'Passage intensif & jeux','Brossage plus fréquent et lestage en sable de silice pour préserver la tenue des brins.']);
+  if(u.indexOf('naturel')>-1) t.push([svg('eye'),'Effet naturel','Brins multi-tons et fil frisé : un brossage régulier conserve l\'effet « vraie pelouse ».']);
+  if(u.indexOf('jardin')>-1) t.push([svg('flower'),'Jardin & vie quotidienne','Entretien minimal : brossage saisonnier et rinçage occasionnel suffisent toute l\'année.']);
+  // pro / sport (champs 92 / 93)
+  if(sp.indexOf('putting')>-1||p.indexOf('golf')>-1) t.push([svg('star'),'Putting green','Sable de lestage pour la vitesse de roulement, aspect ras, brossage régulier.']);
+  else if(sp.indexOf('padel')>-1||sp.indexOf('tennis')>-1) t.push([svg('tool'),'Padel / Tennis','Lestage sable pour le rebond et la stabilité des lignes. Brossage fréquent.']);
+  else if(sp.indexOf('multisport')>-1) t.push([svg('shield'),'Multisport','Fibres robustes : lestage et brossage réguliers pour encaisser le passage.']);
+  if(p.indexOf('restaurant')>-1||p.indexOf('hôtel')>-1||p.indexOf('hotel')>-1) t.push([svg('star'),'Lieu public','Passage soutenu : brossage renforcé et nettoyage fréquent pour garder l\'aspect neuf.']);
+  if(p.indexOf('école')>-1||p.indexOf('ecole')>-1||p.indexOf('aire de jeux')>-1) t.push([svg('shield'),'Aire de jeux','Sous-couche amortissante conseillée et nettoyage régulier de la zone.']);
+  if(p.indexOf('événementiel')>-1||p.indexOf('evenement')>-1||p.indexOf('stand')>-1) t.push([svg('pkg'),'Événementiel','Pose temporaire : fixation légère et réutilisable, stockage à plat.']);
+  // animaux (champ 94)
+  if(q.has_animaux) t.push([svg('paw'),'Vous avez des animaux','Zone toilette dédiée, rinçage 2 à 3 fois/semaine, nettoyant enzymatique. Accès 48 h après la pose.']);
+  // soleil (champ 95)
+  if(s.indexOf('plein soleil')>-1) t.push([svg('sun'),'Plein soleil','Fibres traitées anti-UV (garantie 15 ans). Par forte chaleur, un rinçage rafraîchit la surface.']);
+  else if(s.indexOf('ombre')>-1) t.push([svg('droplet'),'Zone ombragée','Surveillez mousses et humidité : brossez les feuilles et nettoyez un peu plus souvent.']);
+  if(!t.length) t.push([svg('checkc'),'Conseil clé','Respectez le sens des brins et brossez après la pose pour un rendu optimal.']);
+  return t.slice(0,4);
+}
+function pEntretien(){
+  const q=D.questionnaire;
+  const tips=projectTips().map(t=>`<div class="tip"><span class="ti2">${t[0]}</span><div><div class="tt2">${t[1]}</div><div class="td2">${t[2]}</div></div></div>`).join('');
+  const body=`
+    <div class="eyebrow">Entretien & conseils</div>
+    <h2 class="h-sec">Entretien & <span class="hl-mark">garantie</span></h2>
+    <p class="lead">Un entretien minimal suffit à conserver l'aspect neuf de votre gazon. Voici aussi les conseils adaptés à <b>votre projet</b>.</p>
+
+    <div class="grid-2" style="margin-top:13px;align-items:start">
+      <div class="card card-pad"><div class="card-h"><div class="ci">${svg('clock')}</div><h3>Les premiers jours</h3></div>
+        <div class="checks" style="gap:10px">
+          <div class="chk">${ck()}<span>Laissez le gazon se stabiliser 48 h.</span></div>
+          <div class="chk">${ck()}<span>Brossez pour relever les brins.</span></div>
+          <div class="chk">${ck()}<span>Vérifiez les jonctions.</span></div>
+          <div class="chk">${ck()}<span>Répétez le brossage après 1 semaine.</span></div>
+        </div></div>
+      <div class="card card-pad"><div class="card-h"><div class="ci">${svg('broom')}</div><h3>Entretien régulier</h3></div>
+        <div class="checks" style="gap:10px">
+          <div class="chk">${ck()}<span>Brossage : 3 à 4 fois par an minimum.</span></div>
+          <div class="chk">${ck()}<span>Feuilles : souffleur ou balai souple.</span></div>
+          <div class="chk">${ck()}<span>Taches : eau savonneuse tiède.</span></div>
+          <div class="chk">${ck()}<span>Désinfection : 1 fois par an.</span></div>
+        </div></div>
+    </div>
+
+    <div class="card card-pad" style="margin-top:13px">
+      <div class="card-h"><div class="ci">${svg('star')}</div><h3>Conseils pour votre projet</h3></div>
+      <div class="grid-2" style="gap:13px 26px">${tips}</div>
+    </div>
+
+    <div class="callout info" style="margin-top:13px">${svg('shield')}<div class="ct"><b>Garantie 15 ans</b> contre la décoloration UV et l'usure normale. Un brossage régulier conserve l'aspect neuf de 10 à 15 ans.</div></div>`;
+  return page(9,'Entretien & garantie',body);
+}
+
+/* PAGE 10 — ACCESSOIRES */
+function pAccessoires(){
+  const a=D.accessoires;
+  const items=[
+    [svg('layers'),'Géotextile anti-repousse',a.geotextile.description,a.geotextile.m2+' m² · '+a.geotextile.rouleaux+' rouleaux de 25 m'],
+    [svg('tool'),'Bande de jonction',a.bande_jonction.description,a.bande_jonction.ml+' ml · '+a.bande_jonction.unites+' jonction(s)'],
+    [svg('pin2'),'Pointes de fixation',a.pointes.description,a.pointes.boites+' boîte(s)']
+  ];
+  if(a.enzyme) items.push([svg('spray'),'Nettoyant enzymatique',a.enzyme.description,a.enzyme.bouteilles+' bouteille(s)']);
+  const rows=items.map(it=>`<div class="row"><span class="ri">${it[0]}</span><div class="rt"><div class="a">${it[1]}</div><div class="b">${it[2]}</div></div><div class="rv">${it[3]}</div></div>`).join('');
+  const body=`
+    <div class="eyebrow">Pour une pose complète</div>
+    <h2 class="h-sec">Accessoires & <span class="hl-mark">quantités</span></h2>
+    <p class="lead">Quantités calculées automatiquement à partir de votre surface, de votre type de sol et du nombre de jonctions de votre plan.</p>
+
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:18px">${rows}</div>
+    <div class="callout info" style="margin-top:18px">${ck()}<div class="ct"><b>Bon à savoir.</b> Le géotextile est recommandé sur sol meuble. La bande de jonction et la colle ne sont nécessaires que si votre plan comporte des raccords entre lés.</div></div>
+
+    <div class="grid-3" style="margin-top:auto;padding-top:18px">
+      <div class="feat"><div class="fi">${svg('shield')}</div><div class="ft">Garantie 15 ans</div><div class="fd">UV & usure normale</div></div>
+      <div class="feat"><div class="fi">${svg('truck')}</div><div class="ft">Livraison offerte</div><div class="fd">France entière</div></div>
+      <div class="feat"><div class="fi">${svg('star')}</div><div class="ft">Gazon premium</div><div class="fd">Qualité paysagiste</div></div>
+    </div>`;
+  return page(10,'Accessoires & quantités',body);
+}
+
+/* PAGE 11 — FIN (variante de la couverture) */
+function pEnd(){
+  return `<div class="page end">
+    <div class="cnt">
+      <img class="logo" src="${LOGO}" alt="Verdeko">
+      <div class="spacer"></div>
+      <div class="eyebrow">Votre projet prend forme</div>
+      <h2>Bonne installation,<br>${D.client.prenom||'et à bientôt'} !</h2>
+      <p>Votre dossier est prêt. Suivez les étapes dans l'ordre, prenez votre temps sur la préparation du sol et les jonctions : c'est la clé d'un rendu parfait. Notre équipe reste à votre disposition.</p>
+      <div class="band">
+        <div class="b">${svg('shield')}<div><div class="bt">Garantie 15 ans</div><div class="bd">UV & usure normale</div></div></div>
+        <div class="vline"></div>
+        <div class="b">${svg('truck')}<div><div class="bt">Livraison offerte</div><div class="bd">France entière</div></div></div>
+        <div class="vline"></div>
+        <div class="b">${svg('star')}<div><div class="bt">Gazon premium</div><div class="bd">Qualité paysagiste</div></div></div>
+      </div>
+      <div class="contacts">
+        <div class="c">${svg('mail')}<div class="ct"><div class="k">Avant-vente</div><div class="v">contact@verdeko.fr</div></div></div>
+        <div class="c">${svg('mail')}<div class="ct"><div class="k">Support</div><div class="v">sav@verdeko.fr</div></div></div>
+        <div class="c">${svg('globe')}<div class="ct"><div class="k">Site</div><div class="v">www.verdeko.fr</div></div></div>
+      </div>
+      <div class="spacer"></div>
+    </div>
+    <div class="visual">
+      <img src="${D.produit.image_cover}" alt="" onerror="this.style.display='none'">
+      <div class="vtag">${svg('leaf')}${D.produit.nom}</div>
+    </div>
+  </div>`;
+}
+
+/* ====================================================================
+   MONTAGE (PROD)
+   window.VERDEKO_PDF_DATA est injecté par le service avant </head>.
+   En l'absence d'injection, le DATA d'exemple sert d'aperçu autonome.
+   ==================================================================== */
+function paint(){
+  if(!D.meta || typeof D.meta!=='object') D.meta={};
+  if(!D.meta.date) D.meta.date = new Date().toLocaleDateString('fr-FR');
+  if(D.meta.ref==null) D.meta.ref='';
+  SURF = D.terrain.surface_brute || D.terrain.surface_nette;
+  TOTAL = SURF * D.produit.prix_m2;
+  document.getElementById('app').innerHTML =
+    [pCover(),pProjet(),pPlan(),pMateriel(),pSol(),pPose(),pJonctions(),pFixation(),pEntretien(),pAccessoires(),pEnd()].join('');
+  window.__verdekoReady = true;
+}
+if (window.VERDEKO_PDF_DATA) D = window.VERDEKO_PDF_DATA;
+paint();
+
+</script>
 </body>
 </html>
