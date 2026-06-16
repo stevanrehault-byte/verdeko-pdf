@@ -1,5 +1,5 @@
 /**
- * Verdeko PDF Service v2.0
+ * Verdeko PDF Service v3.0
  * API Express + Puppeteer pour génération PDF
  * Optimisé pour Railway
  */
@@ -33,7 +33,7 @@ app.get('/health', (req, res) => {
         status: 'ok', 
         service: 'verdeko-pdf', 
         platform: 'railway',
-        version: '2.0.0',
+        version: '3.0.0',
         timestamp: new Date().toISOString()
     });
 });
@@ -42,7 +42,7 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
     res.json({ 
         service: 'Verdeko PDF Service',
-        version: '2.0.0',
+        version: '3.0.0',
         status: 'running',
         platform: 'Railway',
         endpoints: {
@@ -141,9 +141,10 @@ app.post('/generate', async (req, res) => {
         }
         
         let html = fs.readFileSync(templatePath, 'utf8');
-        
-        // Traiter le template avec les données
-        html = processTemplate(html, data);
+
+        // V3 : injection des données — le rendu se fait dans le template (JS)
+        const payload = JSON.stringify(data).replace(/</g, '\\u003c');
+        html = html.replace('</head>', '<script>window.VERDEKO_PDF_DATA = ' + payload + ';<\/script></head>');
         
         console.log('📝 Template traité, lancement Puppeteer...');
         
@@ -182,6 +183,10 @@ app.post('/generate', async (req, res) => {
             timeout: 30000 
         });
         
+        // Attendre la fin du rendu du template (V6 pose ce flag)
+        await page.waitForFunction('window.__verdekoReady === true', { timeout: 15000 })
+            .catch(() => console.warn('\u26A0\uFE0F __verdekoReady non détecté, on continue'));
+
         // Attendre que les fonts soient chargées
         await page.evaluateHandle('document.fonts.ready');
         
@@ -230,172 +235,7 @@ app.post('/generate', async (req, res) => {
     }
 });
 
-// Fonction de traitement du template
-function processTemplate(html, data) {
-    const client = data.client || {};
-    const produit = data.produit || {};
-    const terrain = data.terrain || {};
-    const calep = data.calepinage || {};
-    const quest = data.questionnaire || {};
-    
-    // Client
-    const prenom = client.prenom || '';
-    const nom = client.nom || '';
-    const nomComplet = (prenom + ' ' + nom).trim() || 'Client';
-    const email = client.email || '';
-    const telephone = client.telephone || client.tel || '';
-    
-    // Produit
-    const produitNom = produit.nom || 'Gazon Synthétique Verdeko';
-    const produitImg = produit.image || '';
-    const produitPrix = parseFloat(produit.prix || produit.prix_m2 || 0);
-    const produitPrixOriginal = parseFloat(produit.prix_original || produit.prix_barre || 0);
-    
-    // Terrain
-    const forme = terrain.forme || 'Rectangle';
-    const surface = parseFloat(terrain.surface_nette || terrain.surface || 0);
-    const surfaceBrute = parseFloat(terrain.surface_brute || surface);
-    
-    // Calepinage
-    const les = calep.les || calep.rouleaux || [];
-    const orientation = calep.orientation || 'horizontal';
-    const chutesPct = parseFloat(calep.chutes_percent || calep.perte_percent || 0);
-    const nbJonctions = parseInt(calep.nb_jonctions || calep.jonctions || Math.max(0, les.length - 1));
-    const svg = calep.svg || '';
-    
-    // Questionnaire
-    const typeSol = quest.type_sol || quest.sol || 'terre';
-    const hasAnimaux = quest.has_animaux || 
-                       (quest.animaux || '').toLowerCase() === 'oui' || 
-                       quest.animaux === true;
-    const isSolMeuble = /terre|sable|meuble|gazon|pelouse/i.test(typeSol);
-    
-    // Calculs
-    const hasRemise = produitPrixOriginal > produitPrix && (produitPrixOriginal - produitPrix) > 0.01;
-    const remisePct = hasRemise ? Math.round(((produitPrixOriginal - produitPrix) / produitPrixOriginal) * 100) : 0;
-    const total = surfaceBrute * produitPrix;
-    
-    // Surface à commander depuis les lés
-    let surfaceCommander = 0;
-    les.forEach(le => {
-        const l = parseFloat(le.largeur || 4);
-        const L = parseFloat(le.longueur || 10);
-        const q = parseInt(le.quantite || 1);
-        surfaceCommander += l * L * q;
-    });
-    if (surfaceCommander === 0) surfaceCommander = surfaceBrute;
-    
-    // Labels
-    const solLabel = isSolMeuble ? 'Sol meuble (terre, sable)' : 'Sol dur (béton, dalle)';
-    const orientHClass = orientation === 'horizontal' ? 'orient-active' : 'orient-inactive';
-    const orientVClass = orientation === 'vertical' ? 'orient-active' : 'orient-inactive';
-    
-    // Générer le tableau des rouleaux (format compact)
-    let rouleauxRows = '';
-    let totalM2 = 0;
-    les.forEach((le, i) => {
-        const l = parseFloat(le.largeur || 4);
-        const L = parseFloat(le.longueur || 10);
-        const q = parseInt(le.quantite || 1);
-        const ref = le.ref || ('L' + (i + 1));
-        const s = l * L * q;
-        totalM2 += s;
-        rouleauxRows += `<tr>
-            <td><span class="le-badge">${ref}</span></td>
-            <td>${q}× ${l.toFixed(0)}m × ${L.toFixed(1)}m</td>
-            <td class="surface-col">${s.toFixed(0)}</td>
-        </tr>`;
-    });
-    
-    // Ordre de pose
-    let ordrePose = '';
-    les.forEach((le, i) => {
-        const ref = le.ref || ('L' + (i + 1));
-        const l = parseFloat(le.largeur || 4);
-        const L = parseFloat(le.longueur || 10);
-        if (i > 0) ordrePose += '<span class="ordre-arrow">›</span>';
-        ordrePose += `<span class="ordre-item"><span class="le-badge">${i + 1}</span> ${ref} <span class="dim">${l.toFixed(0)}m × ${L.toFixed(1)}m</span></span> `;
-    });
-    
-    // Quantités accessoires
-    const geoM2 = Math.ceil(surfaceBrute * 1.15);
-    const nbRouleauxGeo = Math.ceil(geoM2 / 25);
-    const geoQty = `${geoM2} m² (${nbRouleauxGeo} rouleaux)`;
-    const joncMl = nbJonctions * 8;
-    const joncQty = `${joncMl} ml (${nbJonctions} unités)`;
-    const clousQty = '1 boîte(s)';
-    const nbBouteilles = Math.max(1, Math.ceil(surfaceBrute / 50));
-    const nettoyantQty = `${nbBouteilles} bouteille(s)`;
-    
-    // Formatter les nombres
-    const fmt = (n, d = 2) => n.toFixed(d).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-    
-    // Table de remplacement
-    const replacements = {
-        '{{NOM_COMPLET}}': nomComplet,
-        '{{PRENOM}}': prenom,
-        '{{NOM}}': nom,
-        '{{EMAIL}}': email,
-        '{{TELEPHONE}}': telephone,
-        '{{PRODUIT_NOM}}': produitNom,
-        '{{PRODUIT_IMAGE}}': produitImg,
-        '{{PRIX}}': fmt(produitPrix),
-        '{{PRIX_ORIGINAL}}': fmt(produitPrixOriginal),
-        '{{REMISE_PCT}}': remisePct.toString(),
-        '{{FORME}}': forme,
-        '{{SURFACE}}': fmt(surfaceBrute),
-        '{{SURFACE_NETTE}}': fmt(surface),
-        '{{SURFACE_COMMANDER}}': fmt(surfaceCommander),
-        '{{TOTAL}}': fmt(total),
-        '{{TYPE_SOL}}': typeSol,
-        '{{SOL_LABEL}}': solLabel,
-        '{{ANIMAUX_OUI_NON}}': hasAnimaux ? 'oui' : 'non',
-        '{{NB_JONCTIONS}}': nbJonctions.toString(),
-        '{{CHUTES_PCT}}': fmt(chutesPct, 1),
-        '{{ORIENT_H_CLASS}}': orientHClass,
-        '{{ORIENT_V_CLASS}}': orientVClass,
-        '{{SVG_CALEPINAGE}}': svg,
-        '{{ROULEAUX_ROWS}}': rouleauxRows,
-        '{{ORDRE_POSE}}': ordrePose,
-        '{{TOTAL_M2}}': fmt(totalM2),
-        '{{GEO_QTY}}': geoQty,
-        '{{JONC_QTY}}': joncQty,
-        '{{CLOUS_QTY}}': clousQty,
-        '{{NETTOYANT_QTY}}': nettoyantQty,
-        '{{DATE}}': new Date().toLocaleDateString('fr-FR'),
-        '{{ANNEE}}': new Date().getFullYear().toString()
-    };
-    
-    // Appliquer les remplacements
-    for (const [key, value] of Object.entries(replacements)) {
-        html = html.split(key).join(value);
-    }
-    
-    // Traiter les conditions
-    const conditions = [
-        { name: 'EMAIL', show: !!email },
-        { name: 'TELEPHONE', show: !!telephone },
-        { name: 'ANIMAUX', show: hasAnimaux },
-        { name: 'SOL_MEUBLE', show: isSolMeuble },
-        { name: 'SOL_DUR', show: !isSolMeuble },
-        { name: 'HAS_REMISE', show: hasRemise },
-        { name: 'PRODUIT_IMAGE', show: !!produitImg },
-        { name: 'NO_PRODUIT_IMAGE', show: !produitImg },
-        { name: 'JONCTIONS', show: nbJonctions > 0 },
-        { name: 'SVG', show: !!svg }
-    ];
-    
-    conditions.forEach(({ name, show }) => {
-        const regex = new RegExp(`<!--IF:${name}-->([\\s\\S]*?)<!--ENDIF:${name}-->`, 'g');
-        if (show) {
-            html = html.replace(regex, '$1');
-        } else {
-            html = html.replace(regex, '');
-        }
-    });
-    
-    return html;
-}
+// (processTemplate retiré en v3 : le rendu est piloté par le template via window.VERDEKO_PDF_DATA)
 
 // Sanitize filename
 function sanitizeFilename(str) {
@@ -415,7 +255,7 @@ function sanitizeFilename(str) {
 
 // Démarrer le serveur
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Verdeko PDF Service v2.0 démarré`);
+    console.log(`🚀 Verdeko PDF Service v3.0 démarré`);
     console.log(`📍 Port: ${PORT}`);
     console.log(`🌍 Environnement: ${process.env.NODE_ENV || 'development'}`);
     console.log(`✅ Prêt à générer des PDFs!`);
