@@ -34,11 +34,11 @@ svg.ic{stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;strok
 /* ===== EN-TETE / PIED ===== */
 .pg-head{display:flex;align-items:center;justify-content:space-between;padding:11mm 15mm 0}
 .pg-head .hl{display:flex;align-items:center;gap:14px}
-.pg-head .lg{height:34px;width:auto;display:block;position:relative;top:2px}
+.pg-head .lg{height:30px;width:auto;display:block}
 .pg-head .hsep{width:1px;height:19px;background:var(--line)}
 .pg-head .ht{font-size:12.5px;font-weight:700;color:var(--slate-d);letter-spacing:.005em;line-height:1}
 .pg-head .hr{display:flex;align-items:center;gap:12px}
-.pg-head .dots{display:flex;gap:5px}
+.pg-head .dots{display:flex;align-items:center;gap:5px}
 .pg-head .dots i{width:5px;height:5px;border-radius:50%;background:var(--line);display:block}
 .pg-head .dots i.on{background:var(--green-500);width:15px;border-radius:3px}
 .pg-head .pn{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.05em}
@@ -368,7 +368,7 @@ function head(idx,section){
   </div><div class="pg-rule"></div>`;
 }
 function foot(){ return `<div class="pg-foot"><div class="fl"><span class="fg">Verdeko</span> — Dossier de pose personnalisé · <span class="fg">www.verdeko.fr</span></div><div class="fr">${D.meta.ref?'Réf. '+D.meta.ref:''}</div></div>`; }
-function page(idx,section,body){ __PG++; return `<div class="page">${head(__PG,section)}<div class="pg-body">${body}</div>${foot()}</div>`; }
+function page(idx,section,body,noFoot){ __PG++; return `<div class="page">${head(__PG,section)}<div class="pg-body">${body}</div>${noFoot?'':foot()}</div>`; }
 
 /* PAGE 1 — COUVERTURE (2/3 contenu blanc + 1/3 visuel gazon) */
 function pCover(){
@@ -466,8 +466,7 @@ function samplePlanSVG(){
       <g><rect x="261" y="233" width="40" height="22" rx="5" fill="#1f2d26"/><text x="281" y="248" fill="#fff" text-anchor="middle">L2</text></g>
       <g><rect x="261" y="336" width="40" height="22" rx="5" fill="#1f2d26"/><text x="281" y="351" fill="#fff" text-anchor="middle">L3</text></g>
     </g>
-    <g><circle cx="${ex}" cy="${ey}" r="13" fill="#c9a227" stroke="#fff" stroke-width="2.5"/>
-      <g transform="translate(${ex},${ey})" stroke="#fff" stroke-width="1.7" fill="none"><path d="M-6 0s2.5-4 6-4 6 4 6 4-2.5 4-6 4-6-4-6-4z"/><circle cx="0" cy="0" r="1.8"/></g></g>
+    <!-- point de vue : badge oeil en overlay CSS (vpBadge), pas dans le SVG -->
     <g stroke="#9aa39b" stroke-width="1" font-family="sans-serif" font-size="11" fill="#6b7770" font-weight="700">
       <line x1="60" y1="410" x2="508" y2="410"/><text x="284" y="424" text-anchor="middle">12 m</text>
       <line x1="528" y1="34" x2="528" y2="390"/><text x="540" y="215" text-anchor="middle" transform="rotate(90 540 215)">10 m</text></g>
@@ -630,6 +629,18 @@ function orientSVG(){
     <text x="150" y="162" font-family="sans-serif" font-size="10.5" font-weight="700" fill="#a87b14">Votre terrasse</text>
   </svg>`;
 }
+/* Badge "point de vue" (oeil) en overlay sur le plan, positionne selon l'orientation
+   des les. Approximation par orientation : pour une position exacte, le configurateur
+   doit exporter les coords du point de vue dans le payload. */
+function vpBadge(){
+  var horiz = /horizont/i.test(D.calepinage.orientation||'');
+  var pos = horiz ? 'left:16px;top:50%;transform:translateY(-50%)' : 'left:50%;bottom:16px;transform:translateX(-50%)';
+  return '<div style="position:absolute;'+pos+';display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none;z-index:2">'
+    + '<div style="width:36px;height:36px;border-radius:50%;background:#c9a227;border:2.5px solid #fff;box-shadow:0 2px 9px rgba(28,42,33,.3);display:flex;align-items:center;justify-content:center">'
+    + '<svg viewBox="0 0 24 24" style="width:19px;height:19px;stroke:#fff;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round">'+I.eye+'</svg></div>'
+    + '<span style="font-size:9.5px;font-weight:700;color:#a87b14;background:#fff;border-radius:99px;padding:2px 8px;box-shadow:0 1px 3px rgba(28,42,33,.15);white-space:nowrap">Votre vue</span>'
+    + '</div>';
+}
 function planForOrientation(){
   return (D.calepinage.svg && D.calepinage.svg.indexOf('<svg')!==-1) ? D.calepinage.svg : samplePlanSVG();
 }
@@ -644,7 +655,7 @@ function pPose(){
     <div style="display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-top:14px;flex:1;min-height:0;align-items:stretch">
       <div class="card card-pad" style="display:flex;flex-direction:column;min-height:0">
         <div class="card-h"><div class="ci">${svg('eye')}</div><h3>Votre plan de pose</h3><span class="meta">Sens : ${cap(D.calepinage.orientation)}</span></div>
-        <div class="diagram" style="flex:1;min-height:0;border:1.5px solid var(--line);border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:12px">${planForOrientation()}</div>
+        <div class="diagram" style="flex:1;min-height:0;position:relative;border:1.5px solid var(--line);border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:12px">${planForOrientation()}${vpBadge()}</div>
       </div>
       <div class="card card-pad" style="display:flex;flex-direction:column">
         <div class="card-h"><div class="ci">${svg('scissors')}</div><h3>Découpe</h3></div>
@@ -656,7 +667,7 @@ function pPose(){
       </div>
     </div>
 `;
-  return page(7,'Étape 2 — Pose du gazon',body);
+  return page(7,'Étape 2 — Pose du gazon',body,true);
 }
 
 /* PAGE 7 — ETAPE 3 */
