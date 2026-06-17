@@ -310,7 +310,7 @@ const DATA = window.VERDEKO_PDF_DATA || {
     pointes:{ boites:1, description:"Fixation du périmètre" },
     enzyme:{ bouteilles:2, description:"Neutralise les odeurs animales" } }
 };
-const TOTAL_PAGES = 13;
+let TOTAL_PAGES = 14;
 
 /* icones */
 const I = {
@@ -357,6 +357,7 @@ function cap(s){ return s? s.charAt(0).toUpperCase()+s.slice(1):''; }
 function nb(n){ return String(n).replace('.',','); }
 let SURF = 0;   // (re)calcule dans paint() apres normalize()
 let TOTAL = 0;
+let __PG = 1;   // compteur de page auto (numerotation dynamique)
 function lesRefs(){ const out=[]; D.calepinage.les.forEach(le=>{ const r=(le.leRefs&&le.leRefs.length)?le.leRefs:[le.ref]; r.forEach(x=>out.push({ref:x,largeur:le.largeur,longueur:le.longueur})); }); return out; }
 
 function head(idx,section){
@@ -367,7 +368,7 @@ function head(idx,section){
   </div><div class="pg-rule"></div>`;
 }
 function foot(){ return `<div class="pg-foot"><div class="fl"><span class="fg">Verdeko</span> — Dossier de pose personnalisé · <span class="fg">www.verdeko.fr</span></div><div class="fr">${D.meta.ref?'Réf. '+D.meta.ref:''}</div></div>`; }
-function page(idx,section,body){ return `<div class="page">${head(idx,section)}<div class="pg-body">${body}</div>${foot()}</div>`; }
+function page(idx,section,body){ __PG++; return `<div class="page">${head(__PG,section)}<div class="pg-body">${body}</div>${foot()}</div>`; }
 
 /* PAGE 1 — COUVERTURE (2/3 contenu blanc + 1/3 visuel gazon) */
 function pCover(){
@@ -860,7 +861,326 @@ function pConseils(){
   return page(10,'Conseils & bonnes pratiques',body);
 }
 
-/* PAGE 13 — FIN (variante de la couverture) */
+/* PAGE 13 — RECAP FINANCIER & REASSURANCE */
+function pRecap(){
+  function px(n){ return (Number(n)>0) ? eur(n) : 'Sur devis'; }
+  var hasTotal = D.meta && Number(D.meta.total_global) > 0;
+  var acc = Number(D.meta.total_accessoires) || 0;
+  var gazon = hasTotal ? Math.max(0, Number(TOTAL) - acc) : SURF * D.produit.prix_m2;
+  var lignes = [ [svg('grid'), D.produit.nom, m2(SURF)+' × '+eur(D.produit.prix_m2)+' / m²', px(gazon)] ];
+  if(acc>0) lignes.push([svg('pkg'),'Accessoires de pose','Géotextile, jonctions, fixation', eur(acc)]);
+  lignes.push([svg('truck'),'Livraison','France entière','Offerte']);
+  var rows = lignes.map(function(it){ return '<div class="row"><span class="ri">'+it[0]+'</span><div class="rt"><div class="a">'+it[1]+'</div><div class="b">'+it[2]+'</div></div><div class="rv">'+it[3]+'</div></div>'; }).join('');
+  var eng = [
+    [svg('shield'),'Garantie 15 ans','Anti-UV & usure normale'],
+    [svg('clock'),'Paiement en 4×','Sans frais, par carte'],
+    [svg('check'),'Paiement sécurisé','Cryptage bancaire'],
+    [svg('mail'),'Support dédié','sav@verdeko.fr'],
+    [svg('star'),'Gazon premium','Qualité paysagiste'],
+    [svg('checkc'),'Devis sans engagement','Valable 30 jours']
+  ].map(function(e){ return '<div style="display:flex;align-items:flex-start;gap:9px"><div class="ci" style="flex:none">'+e[0]+'</div><div><div style="font-size:12.5px;font-weight:700;color:#23454f;line-height:1.2">'+e[1]+'</div><div style="font-size:11px;color:var(--muted);margin-top:2px">'+e[2]+'</div></div></div>'; }).join('');
+  var body = `
+    <div class="eyebrow">Récapitulatif</div>
+    <h2 class="h-sec">Votre projet <span class="hl-mark">en chiffres</span></h2>
+    <p class="lead">Voici l'estimation de votre projet, livraison incluse. Le devis personnalisé et définitif vous est adressé par e-mail.</p>
+
+    <div class="grid-2" style="margin-top:16px;align-items:start">
+      <div class="card card-pad">
+        <div class="card-h"><div class="ci">${svg('layers')}</div><h3>Estimation</h3></div>
+        <div style="display:flex;flex-direction:column;gap:9px;margin-top:4px">${rows}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding:13px 16px;background:var(--green-50);border:1px solid var(--green-100);border-radius:12px">
+          <span style="font-size:13px;font-weight:700;color:var(--green-600)">Total estimé TTC</span>
+          <b style="font-size:21px;color:var(--green-600)">${px(TOTAL)}</b>
+        </div>
+      </div>
+      <div class="card card-pad">
+        <div class="card-h"><div class="ci">${svg('shield')}</div><h3>Nos engagements</h3></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;margin-top:8px">${eng}</div>
+      </div>
+    </div>
+
+    <div class="callout info" style="margin-top:16px">${ck()}<div class="ct"><b>Réglez en 4× sans frais</b> par carte, paiement 100 % sécurisé. Une question avant de commander ? Notre équipe vous répond sous 24 h ouvrées.</div></div>`;
+  return page(13,'Récapitulatif & engagements',body);
+}
+
+/* ── CONTEXTE & PAGES D'USAGE ──────────────────────────────
+   Flags lus en souple sur l'entry. Famille produit via produit.id (stable),
+   fallback nom, defaut 'standard'. Sert aux pages d'usage conditionnelles. */
+function ctx(){
+  var q  = D.questionnaire || {};
+  var u  = (q.usage||'').toLowerCase();
+  var pr = ((q.projet_pro||'')+' '+(q.sous_projet||'')).toLowerCase();
+  var sp = (q.sport||'').toLowerCase();
+  var id = String((D.produit&&D.produit.id)||'');
+  var nm = ((D.produit&&D.produit.nom)||'').toLowerCase();
+  var famille = 'standard';
+  if(['29413','12471'].indexOf(id)>-1 || /green|golf|putting/.test(nm)) famille='putting';
+  else if(id==='30364' || /padel|smash/.test(nm)) famille='padel';
+  else if(['30362','30717'].indexOf(id)>-1 || /arena|activ|multi/.test(nm)) famille='multisport';
+  if(famille==='standard'){
+    if(/putting|golf/.test(sp)) famille='putting';
+    else if(/padel|tennis/.test(sp)) famille='padel';
+    else if(/multisport|foot/.test(sp)) famille='multisport';
+  }
+  return {
+    famille: famille,
+    sport: famille!=='standard',
+    piscine: u.indexOf('piscine')>-1,
+    terrasse: u.indexOf('terrasse')>-1 || u.indexOf('balcon')>-1,
+    passage: u.indexOf('passage')>-1 || u.indexOf('intensif')>-1 || u.indexOf('jeux')>-1,
+    aireJeux: pr.indexOf('ecole')>-1 || pr.indexOf('école')>-1 || pr.indexOf('aire de jeux')>-1,
+    lieuPublic: pr.indexOf('restaurant')>-1 || pr.indexOf('hotel')>-1 || pr.indexOf('hôtel')>-1,
+    event: pr.indexOf('venement')>-1 || pr.indexOf('stand')>-1
+  };
+}
+
+/* Forme du bassin deduite de l'obstacle dessine (Konva). Detection defensive
+   sur plusieurs structures possibles + fallback rond. A affiner sur un vrai payload. */
+function poolShape(){
+  var obs = (D.terrain && Array.isArray(D.terrain.obstacles)) ? D.terrain.obstacles : [];
+  if(!obs.length) return 'rond';
+  var o = obs[0] || {};
+  var t = ((o.type||o.shape||o.kind||o.forme||'')+'').toLowerCase();
+  if(/circle|cercle|rond|ellipse|round|oval/.test(t)) return 'rond';
+  if(/rect|carre|square|polygon|poly/.test(t)) return 'carre';
+  if(o.radius!=null || o.rayon!=null || o.r!=null) return 'rond';
+  if((o.points && o.points.length) || (o.width!=null && o.height!=null) || (o.w!=null && o.h!=null)) return 'carre';
+  return 'rond';
+}
+
+function poolSVG(shape){
+  var pool = (shape==='carre')
+    ? '<rect x="152" y="96" width="156" height="108" rx="10" fill="url(#vWater)" stroke="#7fc4dd" stroke-width="3"/><rect x="146" y="90" width="168" height="120" rx="13" fill="none" stroke="#eef6f0" stroke-width="9" stroke-opacity=".7"/>'
+    : '<ellipse cx="230" cy="150" rx="84" ry="60" fill="url(#vWater)" stroke="#7fc4dd" stroke-width="3"/><ellipse cx="230" cy="150" rx="92" ry="68" fill="none" stroke="#eef6f0" stroke-width="9" stroke-opacity=".7"/>';
+  return '<svg viewBox="0 0 460 300" width="100%" preserveAspectRatio="xMidYMid meet">'
+    + '<defs><linearGradient id="vWater" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c3e7f3"/><stop offset="1" stop-color="#5fb4d4"/></linearGradient>'
+    + '<pattern id="vTurf" width="11" height="11" patternUnits="userSpaceOnUse"><path d="M5 10V5" stroke="#5aa05a" stroke-width="1.4" stroke-linecap="round"/></pattern></defs>'
+    + '<rect x="20" y="20" width="420" height="260" rx="14" fill="#e8f3e6" stroke="#cfe0cf"/>'
+    + '<rect x="20" y="20" width="420" height="260" rx="14" fill="url(#vTurf)" opacity=".55"/>'
+    + pool
+    + '<g stroke="#2F5C69" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".82">'
+    + '<path d="M230 76 V42"/><path d="M223 52l7-10 7 10"/>'
+    + '<path d="M230 224 V258"/><path d="M223 248l7 10 7-10"/>'
+    + '<path d="M130 150 H56"/><path d="M66 143l-10 7 10 7"/>'
+    + '<path d="M330 150 H404"/><path d="M394 143l10 7-10 7"/></g>'
+    + '<g font-family="sans-serif" font-weight="700">'
+    + '<text x="230" y="154" text-anchor="middle" font-size="12" fill="#1c4451">Bassin</text>'
+    + '<text x="40" y="40" font-size="10.5" fill="#3d7a3d">Gazon</text>'
+    + '<text x="230" y="293" text-anchor="middle" font-size="10.5" font-weight="400" fill="#6b7770">Pente du support orientée vers les bords du terrain</text></g>'
+    + '</svg>';
+}
+
+/* PAGE D'USAGE — BORD DE PISCINE */
+function pUsagePiscine(){
+  var shape = poolShape();
+  var steps = [
+    ["Drainage prioritaire","L'eau de baignade ruisselle en continu : ménagez une pente vers l'extérieur, jamais de rétention d'eau sous le gazon."],
+    ["Au ras des margelles","Découpez le gazon au plus près de la margelle et collez le périmètre. Évitez les clous près du bassin."],
+    ["Lestage minimal","Limitez le sable de remplissage : il migre vers le bassin et finit par encrasser le filtre."],
+    ["Confort & résistance","Fibres traitées anti-chlore. Un rinçage à l'eau claire après forte fréquentation prolonge l'aspect neuf."]
+  ].map(function(s,i){ return '<div class="step"><div class="nb">'+(i+1)+'</div><div class="st-b"><div class="t">'+s[0]+'</div><div class="d">'+s[1]+'</div></div></div>'; }).join('');
+  var body = `
+    <div class="eyebrow">Spécificités de votre usage</div>
+    <h2 class="h-sec">Pose en <span class="hl-mark">bord de piscine</span></h2>
+    <p class="lead">Un bord de piscine demande deux soins particuliers : un drainage irréprochable et une finition nette autour du bassin.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:18px;flex:1;align-items:start">
+      <div class="card card-pad" style="display:flex;flex-direction:column">
+        <div class="card-h"><div class="ci">${svg('droplet')}</div><h3>Schéma de principe</h3><span class="meta">Bassin ${shape==='carre'?'rectangulaire':'arrondi'}</span></div>
+        <div class="diagram" style="flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:6px">${poolSVG(shape)}</div>
+      </div>
+      <div class="steps">${steps}</div>
+    </div>
+
+    <div class="callout info" style="margin-top:16px">${ck()}<div class="ct"><b>Le bon réflexe :</b> orientez la pente du support à l'opposé du bassin, pour que l'eau s'évacue vers les bords du terrain et non vers la plage de piscine.</div></div>`;
+  return page(0,'Bord de piscine',body);
+}
+
+/* squelette commun d'une page d'usage */
+function usagePage(opts){
+  var steps = opts.steps.map(function(s,i){ return '<div class="step"><div class="nb">'+(i+1)+'</div><div class="st-b"><div class="t">'+s[0]+'</div><div class="d">'+s[1]+'</div></div></div>'; }).join('');
+  var body = `
+    <div class="eyebrow">Spécificités de votre usage</div>
+    <h2 class="h-sec">${opts.title}</h2>
+    <p class="lead">${opts.lead}</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:18px;flex:1;align-items:start">
+      <div class="card card-pad" style="display:flex;flex-direction:column">
+        <div class="card-h"><div class="ci">${svg(opts.icon)}</div><h3>${opts.schemaTitle}</h3>${opts.meta?'<span class="meta">'+opts.meta+'</span>':''}</div>
+        <div class="diagram" style="flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:6px">${opts.svgInner}</div>
+      </div>
+      <div class="steps">${steps}</div>
+    </div>
+
+    <div class="callout info" style="margin-top:16px">${ck()}<div class="ct">${opts.callout}</div></div>`;
+  return page(0,opts.section,body);
+}
+function turfBg(){
+  return '<defs><pattern id="vTurf" width="11" height="11" patternUnits="userSpaceOnUse"><path d="M5 10V5" stroke="#5aa05a" stroke-width="1.4" stroke-linecap="round"/></pattern></defs>'
+    + '<rect x="20" y="20" width="420" height="260" rx="14" fill="#e8f3e6" stroke="#cfe0cf"/>'
+    + '<rect x="20" y="20" width="420" height="260" rx="14" fill="url(#vTurf)" opacity=".5"/>';
+}
+function usageSVG(inner){ return '<svg viewBox="0 0 460 300" width="100%" preserveAspectRatio="xMidYMid meet">'+turfBg()+inner+'</svg>'; }
+
+/* PAGE D'USAGE — PADEL */
+function pUsagePadel(){
+  var inner = '<rect x="58" y="74" width="344" height="152" fill="#bcdcc0" fill-opacity=".5" stroke="#fff" stroke-width="3"/>'
+    + '<line x1="230" y1="74" x2="230" y2="226" stroke="#fff" stroke-width="3"/>'
+    + '<g stroke="#fff" stroke-width="2"><line x1="126" y1="74" x2="126" y2="226"/><line x1="334" y1="74" x2="334" y2="226"/><line x1="126" y1="150" x2="334" y2="150"/></g>'
+    + '<g font-family="sans-serif" font-weight="700"><text x="230" y="250" text-anchor="middle" font-size="11" fill="#23454f">Filet central</text>'
+    + '<text x="92" y="68" font-size="10.5" fill="#3d7a3d">Lignes de jeu</text>'
+    + '<text x="230" y="291" text-anchor="middle" font-size="10.5" font-weight="400" fill="#6b7770">Lestage sable de silice sur toute la surface</text></g>';
+  return usagePage({
+    section:'Padel', icon:'tool', schemaTitle:'Schéma du terrain', meta:'Surface de jeu',
+    title:'Pose pour <span class="hl-mark">terrain de padel</span>',
+    lead:"Un terrain de padel se pose sur dalle drainante, avec un lestage et des jonctions soignés sur toute la surface de jeu.",
+    svgInner: usageSVG(inner),
+    steps:[
+      ["Sur dalle drainante","Posez sur béton drainant, sans géotextile. Le drainage doit être irréprochable sur toute la surface."],
+      ["Lignes de jeu","Lignes pré-marquées ou découpées et collées, alignées au cordeau pour un tracé net."],
+      ["Lestage sable de silice","Épandez en plusieurs passes et brossez : c'est lui qui donne le rebond et bloque les lignes."],
+      ["Jonctions invisibles","Raccords sur toute la surface, collés puis sablés pour disparaître sous le jeu."]
+    ],
+    callout:"Le sable de silice n'est pas optionnel ici : c'est lui qui donne le rebond et maintient les lignes de jeu en place dans le temps."
+  });
+}
+
+/* PAGE D'USAGE — FOOT */
+function pUsageFoot(){
+  var inner = '<rect x="58" y="66" width="344" height="168" fill="#bcdcc0" fill-opacity=".5" stroke="#fff" stroke-width="3"/>'
+    + '<line x1="230" y1="66" x2="230" y2="234" stroke="#fff" stroke-width="2.5"/>'
+    + '<circle cx="230" cy="150" r="32" fill="none" stroke="#fff" stroke-width="2"/><circle cx="230" cy="150" r="3" fill="#fff"/>'
+    + '<rect x="58" y="110" width="40" height="80" fill="none" stroke="#fff" stroke-width="2"/><rect x="362" y="110" width="40" height="80" fill="none" stroke="#fff" stroke-width="2"/>'
+    + '<rect x="52" y="132" width="6" height="36" fill="#fff"/><rect x="402" y="132" width="6" height="36" fill="#fff"/>'
+    + '<g font-family="sans-serif" font-weight="400" fill="#6b7770"><text x="230" y="291" text-anchor="middle" font-size="10.5">Lestage sable de silice et sens des fibres unique</text></g>';
+  return usagePage({
+    section:'Football', icon:'shield', schemaTitle:'Schéma du terrain', meta:'Aire de jeu',
+    title:'Pose pour <span class="hl-mark">terrain de foot</span>',
+    lead:"Un terrain de foot exige une base parfaitement stable, un lestage régulier et un tracé soigné des lignes de jeu.",
+    svgInner: usageSVG(inner),
+    steps:[
+      ["Base très stable","Compactage maximal, planéité et drainage : le moindre creux se ressent au jeu."],
+      ["Lestage sable de silice","Réparti et brossé, il fixe les fibres, amortit et stabilise la surface."],
+      ["Tracé des lignes","Lignes blanches incrustées ou peintes, posées au cordeau pour un terrain réglementaire."],
+      ["Sens des fibres unique","Toutes les fibres dans le même sens : rendu uniforme et roulement régulier du ballon."]
+    ],
+    callout:"Compactez sans relâche : sur un terrain de foot, le moindre creux se ressent à la course et au roulement du ballon."
+  });
+}
+
+/* PAGE D'USAGE — GOLF / PUTTING */
+function pUsageGolf(){
+  var inner = '<path d="M64 150 C64 96 150 78 234 86 C322 95 398 112 398 158 C398 206 318 232 232 226 C150 220 64 204 64 150 Z" fill="#cdeccd" stroke="#3d7a3d" stroke-width="2"/>'
+    + '<path d="M110 150 C170 138 250 132 330 138" fill="none" stroke="#9cc59c" stroke-width="1.5" stroke-dasharray="4 4"/>'
+    + '<path d="M150 178 C210 168 280 150 314 126" fill="none" stroke="#2F5C69" stroke-width="2.2" stroke-dasharray="5 5"/>'
+    + '<path d="M308 118 l10 6 -4 9" fill="none" stroke="#2F5C69" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>'
+    + '<circle cx="322" cy="120" r="6" fill="#1c3a2a"/><line x1="322" y1="120" x2="322" y2="84" stroke="#6b7770" stroke-width="2"/><path d="M322 84 L342 90 L322 96 Z" fill="#c0492f"/>'
+    + '<circle cx="150" cy="180" r="5" fill="#fff" stroke="#cfd8d0"/>'
+    + '<g font-family="sans-serif" font-weight="700" fill="#23454f"><text x="322" y="78" text-anchor="middle" font-size="10.5">Trou</text>'
+    + '<text x="230" y="291" text-anchor="middle" font-size="10.5" font-weight="400" fill="#6b7770">Sens de roulement et sable de silice fin</text></g>';
+  return usagePage({
+    section:'Putting green', icon:'star', schemaTitle:'Schéma du green', meta:'Roulement',
+    title:'Pose pour <span class="hl-mark">putting green</span>',
+    lead:"Un putting green vit sur sa planéité et sa vitesse de roulement : deux paramètres réglés à la pose.",
+    svgInner: usageSVG(inner),
+    steps:[
+      ["Planéité extrême","Le moindre creux dévie la balle. Réglez au laser ou à la règle, contrôlez sans relâche."],
+      ["Sable de silice fin","Dosé et brossé, il règle la vitesse de roulement : plus de sable, green plus rapide."],
+      ["Sens de roulement","Fibres orientées dans un sens unique pour un putt régulier et prévisible."],
+      ["Trou & frange","Soignez les bords du trou et la transition avec la frange pour un rendu pro."]
+    ],
+    callout:"Réglez la quantité de sable de silice pour ajuster la vitesse de roulement : plus de sable = green plus rapide."
+  });
+}
+
+/* PAGE D'USAGE — PASSAGE INTENSIF / AIRE DE JEUX */
+function pUsageIntensif(){
+  var inner = '<ellipse cx="155" cy="146" rx="58" ry="46" fill="#e9a23b" fill-opacity=".3" stroke="#d98b1f" stroke-width="2" stroke-dasharray="5 4"/>'
+    + '<ellipse cx="305" cy="146" rx="58" ry="46" fill="#e9a23b" fill-opacity=".3" stroke="#d98b1f" stroke-width="2" stroke-dasharray="5 4"/>'
+    + '<g font-family="sans-serif" font-weight="700" fill="#a87b14"><text x="155" y="150" text-anchor="middle" font-size="10.5">Zone de passage</text><text x="305" y="150" text-anchor="middle" font-size="10.5">Zone de jeu</text></g>'
+    + '<g font-family="sans-serif" font-weight="400" fill="#6b7770"><text x="230" y="291" text-anchor="middle" font-size="10.5">Sous-couche amortissante + lestage sable de silice</text></g>';
+  return usagePage({
+    section:'Passage intensif', icon:'alert', schemaTitle:'Zones sollicitées', meta:'Usure',
+    title:'Passage intensif & <span class="hl-mark">aire de jeux</span>',
+    lead:"Les zones très fréquentées s'usent plus vite : une base renforcée et le bon lestage préservent la tenue dans le temps.",
+    svgInner: usageSVG(inner),
+    steps:[
+      ["Sous-couche amortissante","Pour une aire de jeux, elle assure la sécurité (hauteur de chute) et le confort."],
+      ["Base très compactée","Pas de tassement dans les zones piétinées : compactez par passes croisées."],
+      ["Lestage sable de silice","Maintient la tenue des brins là où le passage est le plus répété."],
+      ["Fixation renforcée","Soignez le périmètre et les zones d'entrée et de virage, qui lâchent en premier."]
+    ],
+    callout:"Sur une aire de jeux pour enfants, la sous-couche amortissante n'est pas un confort mais une sécurité (hauteur de chute)."
+  });
+}
+
+/* PAGE D'USAGE — TERRASSE / BALCON */
+function pUsageTerrasse(){
+  var arrows = [120,230,340].map(function(x){ return '<path d="M'+x+' 90 V228"/><path d="M'+(x-7)+' 218 l7 10 7-10"/>'; }).join('');
+  var grille = [60,90,120,150,180,210,240,270,300,330,360,390].map(function(x){ return '<line x1="'+x+'" y1="250" x2="'+x+'" y2="262"/>'; }).join('');
+  var fix = [60,140,220,300,380].map(function(x){ return '<rect x="'+(x-3)+'" y="34" width="6" height="6" rx="1"/>'; }).join('');
+  var inner = '<rect x="34" y="248" width="392" height="16" rx="3" fill="#c7d0cb" stroke="#aeb8b1"/>'
+    + '<g stroke="#8b958e" stroke-width="1.4">'+grille+'</g>'
+    + '<g stroke="#2F5C69" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".75">'+arrows+'</g>'
+    + '<g fill="#2F6D3C">'+fix+'</g>'
+    + '<g font-family="sans-serif" font-weight="700"><text x="230" y="244" text-anchor="middle" font-size="10.5" fill="#23454f">Caniveau / évacuation (à ne pas obstruer)</text>'
+    + '<text x="230" y="52" text-anchor="middle" font-size="10" font-weight="400" fill="#6b7770">Fixation du périmètre (colle / double-face)</text></g>';
+  return usagePage({
+    section:'Terrasse & balcon', icon:'layers', schemaTitle:'Schéma de principe', meta:'Sur dalle',
+    title:'Pose sur <span class="hl-mark">terrasse & balcon</span>',
+    lead:"Sur support dur, pas de décaissement : tout se joue sur l'écoulement de l'eau et une fixation propre du périmètre.",
+    svgInner: usageSVG(inner),
+    steps:[
+      ["Pas de décaissement","Posez directement sur dalle, carrelage ou bois, propre et sec."],
+      ["Évacuations dégagées","Ne bouchez jamais caniveaux et siphons ; conservez la pente d'écoulement existante."],
+      ["Fixation non perçante","Colle ou ruban double-face extérieur, lestage du périmètre : indispensable en copropriété."],
+      ["Découpe nette","Soignez les contours de jardinières, gaines et seuils de porte."]
+    ],
+    callout:"Ne percez jamais une dalle d'étanchéité ni un balcon en copropriété : fixez au double-face ou à la colle, et lestez le périmètre."
+  });
+}
+
+/* PAGE D'USAGE — PRO / LIEU PUBLIC */
+function pUsagePro(){
+  var inner = '<path d="M40 150 H418" stroke="#e9a23b" stroke-width="40" stroke-opacity=".25" stroke-linecap="round"/>'
+    + '<path d="M58 150 H398" fill="none" stroke="#2F5C69" stroke-width="2.4" stroke-dasharray="7 7"/>'
+    + '<path d="M392 142 l12 8 -12 8" fill="none" stroke="#2F5C69" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>'
+    + '<rect x="36" y="120" width="20" height="60" rx="3" fill="#2F6D3C"/>'
+    + '<g font-family="sans-serif" font-weight="700" fill="#23454f"><text x="46" y="112" text-anchor="middle" font-size="10.5">Entrée</text>'
+    + '<text x="235" y="136" text-anchor="middle" font-size="11" fill="#a87b14">Flux de passage</text>'
+    + '<text x="230" y="291" text-anchor="middle" font-size="10.5" font-weight="400" fill="#6b7770">Renfort de fixation et entretien fréquent</text></g>';
+  return usagePage({
+    section:'Usage professionnel', icon:'pkg', schemaTitle:'Flux de passage', meta:'Lieu public',
+    title:'Usage <span class="hl-mark">professionnel</span>',
+    lead:"En lieu public, le passage est soutenu : la durabilité tient à une fixation renforcée et à un entretien régulier.",
+    svgInner: usageSVG(inner),
+    steps:[
+      ["Passage soutenu","Fibres robustes et base très stable pour encaisser la fréquentation."],
+      ["Fixation renforcée","Périmètre, jonctions et zones d'entrée : ce sont elles qui s'usent en premier."],
+      ["Entretien fréquent","Brossage et nettoyage réguliers pour garder un aspect neuf en permanence."],
+      ["Sécurité & normes","Selon l'établissement (ERP), prévoyez sous-couche ou traitement antidérapant."]
+    ],
+    callout:"Anticipez l'usure : les zones d'entrée et de virage s'abîment en premier, renforcez-y la fixation et le brossage."
+  });
+}
+
+/* selection de LA page d'usage (une seule par projet, par priorite) */
+function pickUsage(c){
+  var q = D.questionnaire||{};
+  var sp = (q.sport||'').toLowerCase();
+  var u  = (q.usage||'').toLowerCase();
+  if(c.famille==='padel' || /padel|tennis/.test(sp)) return pUsagePadel;
+  if(/foot|football/.test(sp) || /foot|football/.test(u)) return pUsageFoot;
+  if(c.famille==='putting' || /putting|golf/.test(sp)) return pUsageGolf;
+  if(c.famille==='multisport') return pUsageIntensif;
+  if(c.piscine) return pUsagePiscine;
+  if(c.aireJeux || c.passage) return pUsageIntensif;
+  if(c.terrasse) return pUsageTerrasse;
+  if(c.lieuPublic || c.event) return pUsagePro;
+  return null;
+}
+
+/* PAGE 14 — FIN (variante de la couverture) */
 function pEnd(){
   return `<div class="page end">
     <div class="cnt">
@@ -942,8 +1262,15 @@ function paint(){
     normalize();
     SURF = D.terrain.surface_brute || D.terrain.surface_nette || 0;
     TOTAL = (D.meta && Number(D.meta.total_global) > 0) ? Number(D.meta.total_global) : SURF * D.produit.prix_m2;
+    __PG = 1;
+    var c = ctx();
+    var pagesContenu = [pProjet,pPlan,pOrdrePose,pMateriel,pSol,pPose,pJonctions,pFixation,pConseils,pEntretien,pAccessoires];
+    var up = pickUsage(c);
+    if(up) pagesContenu.push(up);
+    pagesContenu.push(pRecap);
+    TOTAL_PAGES = pagesContenu.length + 2;
     document.getElementById('app').innerHTML =
-      [pCover(),pProjet(),pPlan(),pOrdrePose(),pMateriel(),pSol(),pPose(),pJonctions(),pFixation(),pConseils(),pEntretien(),pAccessoires(),pEnd()].join('');
+      pCover() + pagesContenu.map(function(fn){ return fn(); }).join('') + pEnd();
   }catch(e){
     console.error('[Verdeko PDF] Erreur de rendu:', (e && e.message) || e, e && e.stack);
     document.getElementById('app').innerHTML =
