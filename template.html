@@ -358,6 +358,48 @@ function nb(n){ return String(n).replace('.',','); }
 let SURF = 0;   // (re)calcule dans paint() apres normalize()
 let TOTAL = 0;
 let __PG = 1;   // compteur de page auto (numerotation dynamique)
+/* LOT-AUDIT-GUIDE (05/11) : regles de pose validees par BoGazon (audit VDK-DEV-2026-0709).
+   Quantites recalculees ici : geotextile 2 couches + 10 %, pointes 5/m, bande au metre utile. */
+const ROUL_GEO_M2 = 25, BANDE_ML = 10, POINTES_BOITE = 170, POINTES_PAR_ML = 5;
+function hauteurMm(){ var m=String((D.produit&&D.produit.nom)||'').match(/(\d{1,2})\s*mm/i); var h=m?parseInt(m[1],10):0; return (h>=5&&h<=80)?h:0; }
+function decaissementTxt(){ var h=hauteurMm(); return h ? nb(Math.round((7+h/10)*10)/10)+' cm' : '7 cm + la hauteur de votre gazon'; }
+function estSport(){ var id=String((D.produit&&D.produit.id)||''); var nm=String((D.produit&&D.produit.nom)||'').toLowerCase();
+  return ['30362','30364','30717','12471','29413'].indexOf(id)>-1 || /arena|smash|activ|golf|greenline|performa|padel/.test(nm); }
+function garantieAns(){ return estSport()?10:15; }
+function perimetreMl(){ var p=Number(D.terrain.perimetre_ml)||0; if(p>0) return p;
+  (Array.isArray(D.terrain.shapes)?D.terrain.shapes:[]).forEach(function(s){ var pts=s.points||[];
+    for(var i=0;i<pts.length;i++){ var a=pts[i], b=pts[(i+1)%pts.length];
+      var ax=+(a.x!=null?a.x:a[0]), ay=+(a.y!=null?a.y:a[1]), bx=+(b.x!=null?b.x:b[0]), by=+(b.y!=null?b.y:b[1]);
+      if(isFinite(ax+ay+bx+by)) p+=Math.hypot(bx-ax,by-ay); } });
+  if(p>0) return p; return SURF? Math.sqrt(SURF)*4 : 0; }
+function fr1(n){ return nb(Math.round(n*10)/10); }
+function calculAccessoires(){
+  var meuble=!!D.questionnaire.is_sol_meuble;
+  var pose=Number(D.terrain.surface_nette)||Number(D.terrain.surface_brute)||0;
+  var geoM2=meuble&&pose? Math.ceil(pose*2*1.1) : 0;
+  var nj=Number(D.calepinage.nb_jonctions)||0;
+  var lg=D.calepinage.les.map(function(l){return Number(l.longueur)||0;}).filter(Boolean);
+  var memeL=lg.length && lg.every(function(x){return Math.abs(x-lg[0])<0.01;});
+  var ml=Number(D.calepinage.jonctions_ml)||0;
+  if(!ml && nj && lg.length) ml=nj*Math.max.apply(null,lg);
+  var per=perimetreMl();
+  var nbP=meuble&&per? Math.ceil(per*POINTES_PAR_ML) : 0;
+  var old=D.accessoires||{};
+  D.accessoires={
+    geotextile:{ surface_posee:pose, m2:geoM2, rouleaux:geoM2?Math.ceil(geoM2/ROUL_GEO_M2):0,
+      description:'Séparation et anti-repousse · 2 couches' },
+    bande_jonction:{ ml_utiles:Math.round(ml*10)/10, unites:nj, rouleaux:ml?Math.ceil(ml/BANDE_ML):0,
+      detail: (nj&&memeL)? nj+' × '+fr1(lg[0])+' m' : '',
+      description:'Pour les jonctions entre les lés' },
+    pointes:{ perimetre:Math.round(per*10)/10, nombre:nbP, boites:nbP?Math.ceil(nbP/POINTES_BOITE):0,
+      description:'Fixation périphérique, environ 5 par mètre' },
+    enzyme: (old && !Array.isArray(old) && old.enzyme!==undefined) ? old.enzyme
+      : ((D.questionnaire.has_animaux && SURF) ? {bouteilles:Math.ceil(SURF/50),description:'Neutralise les odeurs'} : null)
+  };
+}
+function geoTxt(){ var g=D.accessoires.geotextile; return fr1(g.surface_posee)+' m² × 2 couches + 10 % = '+g.m2+' m² · '+g.rouleaux+' rouleau'+(g.rouleaux>1?'x':'')+' de '+ROUL_GEO_M2+' m²'; }
+function bandeTxt(){ var b=D.accessoires.bande_jonction; return fr1(b.ml_utiles)+' ml utiles'+(b.detail?' ('+b.detail+')':'')+' · '+b.rouleaux+' rouleau'+(b.rouleaux>1?'x':'')+' de '+BANDE_ML+' m'; }
+function pointesTxt(){ var p=D.accessoires.pointes; return '≈ '+p.nombre+' pointes ('+fr1(p.perimetre)+' m de périmètre) · '+p.boites+' boîte'+(p.boites>1?'s':''); }
 function lesRefs(){ const out=[]; D.calepinage.les.forEach(le=>{ const r=(le.leRefs&&le.leRefs.length)?le.leRefs:[le.ref]; r.forEach(x=>out.push({ref:x,largeur:le.largeur,longueur:le.longueur})); }); return out; }
 
 function head(idx,section){
@@ -514,7 +556,7 @@ function pMateriel(){
   const a=D.accessoires;
   const matos=[
     [svg('scissors'),'Cutter + lames neuves','rechange'],
-    [svg('ruler'),'Grande règle métallique',''],
+    [svg('ruler'),'Règle de 3 m',''],
     [svg('ruler'),'Mètre ruban + cordeau',''],
     [svg('broom'),'Balai de cantonnier','poils durs'],
     [svg('hammer'),'Maillet caoutchouc',''],
@@ -522,12 +564,13 @@ function pMateriel(){
     [svg('trowel'),'Brouette, pelle, râteau',''],
     [svg('shield'),'Gants de protection','']
   ].map(m=>`<div class="tool-line">${m[0]}<span class="tl-name">${m[1]}</span>${m[2]?'<span class="tl-tag">'+m[2]+'</span>':''}</div>`).join('');
-  const fourn=[
-    [svg('grid'),D.produit.nom, m2(SURF)+' — '+D.calepinage.nb_les+' lés à découper'],
-    [svg('layers'),'Géotextile anti-repousse', a.geotextile.m2+' m² ('+a.geotextile.rouleaux+' rouleaux de 25 m)'],
-    [svg('tool'),'Bande de jonction + colle', a.bande_jonction.ml+' ml — '+a.bande_jonction.unites+' jonction(s)'],
-    [svg('pin2'),'Pointes / grappins', a.pointes.boites+' boîte(s) — fixation du périmètre']
-  ].map(f=>`<div class="row" style="padding:11px 14px"><span class="ri">${f[0]}</span><div class="rt"><div class="a">${f[1]}</div><div class="b">${f[2]}</div></div></div>`).join('');
+  let fourn=[
+    [svg('grid'),D.produit.nom, m2(SURF)+' — '+D.calepinage.nb_les+' lés à découper']
+  ];
+  if(a.geotextile.m2) fourn.push([svg('layers'),'Géotextile · séparation et anti-repousse', geoTxt()]);
+  if(a.bande_jonction.ml_utiles) fourn.push([svg('tool'),'Bande de jonction préencollée', bandeTxt()]);
+  if(a.pointes.nombre) fourn.push([svg('pin2'),'Pointes de fixation', pointesTxt()]);
+  fourn = fourn.map(f=>`<div class="row" style="padding:11px 14px"><span class="ri">${f[0]}</span><div class="rt"><div class="a">${f[1]}</div><div class="b">${f[2]}</div></div></div>`).join('');
   const body=`
     <div class="eyebrow">Avant de commencer</div>
     <h2 class="h-sec">Matériel & <span class="hl-mark">préparation</span></h2>
@@ -547,7 +590,7 @@ function pMateriel(){
           <div class="cond">
             <div><div class="ci2">${svg('thermo')}</div><div class="ct2">10 – 25 °C</div><div class="cd2">Temps sec, vent faible</div></div>
             <div class="vsep"></div>
-            <div><div class="ci2">${svg('clock')}</div><div class="ct2">1 à 2 jours</div><div class="cd2">pour environ 100 m²</div></div>
+            <div><div class="ci2">${svg('clock')}</div><div class="ct2">2 jours</div><div class="cd2">pour la pose d'environ 100 m²</div></div>
             <div class="vsep"></div>
             <div><div class="ci2">${svg('checkc')}</div><div class="ct2">Accessible</div><div class="cd2">avec méthode et patience</div></div>
           </div>
@@ -560,17 +603,24 @@ function pMateriel(){
 /* COUPE DU SOL */
 function coupeSVG(meuble){
   if(meuble){
-    return `<svg viewBox="0 0 420 200" width="100%" preserveAspectRatio="xMidYMid meet">
-      <g stroke="#3d7a3d" stroke-width="2" stroke-linecap="round">${Array.from({length:21}).map((_,i)=>`<line x1="${30+i*14}" y1="34" x2="${28+i*14}" y2="20"/>`).join('')}</g>
-      <rect x="24" y="34" width="290" height="14" fill="#509350"/><rect x="24" y="48" width="290" height="9" fill="#caa15a"/>
-      <rect x="24" y="57" width="290" height="22" fill="#d9c7a3"/><rect x="24" y="79" width="290" height="38" fill="#b9b1a0"/>
-      <rect x="24" y="117" width="290" height="44" fill="#8a7b66"/>
+    var dec = decaissementTxt().replace(' + la hauteur de votre gazon',' + gazon');
+    return `<svg viewBox="0 0 440 210" width="100%" preserveAspectRatio="xMidYMid meet">
+      <g stroke="#3d7a3d" stroke-width="2" stroke-linecap="round">${Array.from({length:19}).map((_,i)=>`<line x1="${52+i*14}" y1="34" x2="${50+i*14}" y2="20"/>`).join('')}</g>
+      <rect x="46" y="34" width="262" height="12" fill="#509350"/>
+      <rect x="46" y="46" width="262" height="4" fill="#f1ede4" stroke="#9aa39b" stroke-width=".8"/>
+      <rect x="46" y="50" width="262" height="22" fill="#d6c6a2"/>
+      <rect x="46" y="72" width="262" height="4" fill="#f1ede4" stroke="#9aa39b" stroke-width=".8"/>
+      <rect x="46" y="76" width="262" height="50" fill="#b9b1a0"/>
+      <rect x="46" y="126" width="262" height="58" fill="#8a7b66"/>
+      <g stroke="#2F5C69" stroke-width="1.4" fill="none"><line x1="30" y1="20" x2="30" y2="126"/><path d="M26 24l4-4 4 4M26 122l4 4 4-4"/></g>
+      <text x="22" y="76" transform="rotate(-90 22 76)" text-anchor="middle" font-family="sans-serif" font-size="10.5" font-weight="700" fill="#2F5C69">Décaissement ${dec}</text>
       <g font-family="sans-serif" font-size="11" font-weight="700" fill="#23272a">
-        <line x1="318" y1="41" x2="334" y2="41" stroke="#9aa39b"/><text x="339" y="44">Gazon synthétique</text>
-        <line x1="318" y1="52" x2="334" y2="52" stroke="#9aa39b"/><text x="339" y="55" fill="#6b7770" font-weight="400">Géotextile</text>
-        <line x1="318" y1="68" x2="334" y2="68" stroke="#9aa39b"/><text x="339" y="71">Sable 0/4 lavé · 2–3 cm</text>
-        <line x1="318" y1="98" x2="334" y2="98" stroke="#9aa39b"/><text x="339" y="101">Grave 0/20 · 5–8 cm</text>
-        <line x1="318" y1="139" x2="334" y2="139" stroke="#9aa39b"/><text x="339" y="142" fill="#6b7770" font-weight="400">Sol support (terre)</text></g>
+        <line x1="312" y1="38" x2="326" y2="38" stroke="#9aa39b"/><text x="331" y="41">Gazon synthétique</text>
+        <line x1="312" y1="48" x2="326" y2="55" stroke="#9aa39b"/><text x="331" y="58" fill="#2F5C69">Géotextile n°2</text>
+        <line x1="312" y1="62" x2="326" y2="73" stroke="#9aa39b"/><text x="331" y="76">Sable 0/4 · ~2 cm</text>
+        <line x1="312" y1="74" x2="326" y2="91" stroke="#9aa39b"/><text x="331" y="94" fill="#2F5C69">Géotextile n°1</text>
+        <line x1="312" y1="101" x2="326" y2="109" stroke="#9aa39b"/><text x="331" y="112">Grave 0/20 · ~5 cm</text>
+        <line x1="312" y1="155" x2="326" y2="155" stroke="#9aa39b"/><text x="331" y="158" fill="#6b7770" font-weight="400">Fond de forme compacté</text></g>
     </svg>`;
   }
   return `<svg viewBox="0 0 420 200" width="100%" preserveAspectRatio="xMidYMid meet">
@@ -586,13 +636,15 @@ function coupeSVG(meuble){
 /* PAGE 5 — ETAPE 1 */
 function pSol(){
   const meuble=D.questionnaire.is_sol_meuble;
+  const h=hauteurMm();
   const sM=[
-    ['Désherbage','Éliminez herbes, racines et grosses pierres. Sur une pelouse, un désherbant total 2 à 3 semaines avant facilite le décapage.'],
-    ['Décaissement','Creusez sur <b>8 à 10 cm</b>. Ménagez une pente de 1 à 2 % vers l\'extérieur pour le drainage.'],
-    ['Grave concassée','Étalez <b>5 à 8 cm</b> de grave 0/20. Réglez à la règle, compactez par passes croisées.'],
-    ['Sable de nivellement','<b>2 à 3 cm</b> de sable 0/4 <b>lavé</b>. Tirez à la règle, compactez à nouveau.'],
-    ['Géotextile','Déroulez le feutre anti-repousse, <b>10 cm de recouvrement</b> entre les bandes.'],
-    ['Contrôle final','Planéité à la règle (tolérance 5 mm sous 3 m). Surface propre, ferme et drainante.']
+    ['Décaissement','Creusez sur <b>'+decaissementTxt()+'</b>'+(h?' (7 cm + '+h+' mm de gazon)':'')+'. Retirez racines et pierres. Ménagez une pente de 1 à 2 %.'],
+    ['Fond de forme','Réglez-le à la règle et compactez-le à la plaque vibrante.'],
+    ['Géotextile n°1','Déroulez-le sur le fond de forme, <b>10 cm de recouvrement</b> entre les bandes.'],
+    ['Grave 0/20 · environ 5 cm','Réglez à la règle, humidifiez en pluie fine, compactez par passes croisées.'],
+    ['Sable 0/4 · environ 2 cm','Sable de carrière <b>non lavé</b>. Réglez, humidifiez, compactez jusqu\'à une surface ferme qui ne marque plus sous le pied.'],
+    ['Géotextile n°2','Sur le 0/4 compacté, <b>10 cm de recouvrement</b>, sans pli.'],
+    ['Contrôle final','<b>5 mm maximum</b> sous une règle de 3 m.']
   ];
   const sD=[
     ['Nettoyage','Balayez et dépoussiérez la dalle. Retirez mousses et résidus. Surface saine et sèche.'],
@@ -611,10 +663,10 @@ function pSol(){
       <div class="steps">${steps}</div>
       <div style="display:flex;flex-direction:column;gap:16px">
         <div class="card card-pad"><div class="card-h"><div class="ci">${svg('layers')}</div><h3>Coupe du support</h3></div><div class="diagram" style="height:172px">${coupeSVG(meuble)}</div></div>
-        <div class="callout warn">${svg('alert')}<div class="ct">${meuble?'<b>Jamais de sable de maçonnerie</b> : il fait croûte et retient l\'eau. Uniquement du sable 0/4 ou 0/6 lavé.':'<b>Ne négligez pas le drainage</b> : une eau stagnante crée odeurs et décollements.'}</div></div>
+        ${meuble?'<div class="card card-pad" style="padding:14px 16px;background:var(--green-50);border-color:var(--green-100)"><div class="card-h" style="margin-bottom:6px"><div class="ci" style="background:#fff">'+svg('trowel')+'</div><h3>Quel sable acheter ?</h3></div><div class="soft" style="font-size:11.5px;line-height:1.5">Demandez un <b>sable 0/4 de carrière, concassé et non lavé</b> : ses fines se lient au compactage et forment une couche ferme. <b>Jamais de sable lavé ni roulé</b> (rivière, maçonnerie) : il reste meuble et se creuse.</div></div>':'<div class="callout warn">'+svg('alert')+'<div class="ct"><b>Ne négligez pas l\'écoulement</b> : une eau stagnante crée odeurs et décollements.</div></div>'}
       </div>
     </div>
-    <div class="callout info" style="margin-top:16px">${ck()}<div class="ct"><b>Le détail qui change tout :</b> le compactage est l'étape la plus souvent bâclée. Un support mal compacté se tasse et fait apparaître des creux après quelques mois.</div></div>`;
+    ${meuble?'':'<div class="callout info" style="margin-top:16px">'+ck()+'<div class="ct"><b>Le détail qui change tout :</b> une surface propre et plane évite que les défauts du support ne se voient à travers le gazon.</div></div>'}`;
   return page(6,'Étape 1 — Préparation du sol',body);
 }
 
@@ -660,7 +712,7 @@ function pPose(){
       <div class="card card-pad" style="display:flex;flex-direction:column">
         <div class="card-h"><div class="ci">${svg('scissors')}</div><h3>Découpe</h3></div>
         <div class="steps">
-          <div class="step"><div class="nb">1</div><div class="st-b"><div class="t">Côté envers</div><div class="d">Toujours sur le dos (latex), jamais sur les brins. Suivez les coutures.</div></div></div>
+          <div class="step"><div class="nb">1</div><div class="st-b"><div class="t">Côté envers</div><div class="d">Toujours sur le dos du gazon (support), jamais sur les brins. Suivez les coutures.</div></div></div>
           <div class="step"><div class="nb">2</div><div class="st-b"><div class="t">Lame neuve</div><div class="d">Changez-la dès qu'elle accroche : une lame émoussée déchire le support.</div></div></div>
           <div class="step"><div class="nb">3</div><div class="st-b"><div class="t">Lisières d'usine</div><div class="d">Recoupez le bord sans brins sur les côtés à jointer pour un raccord invisible.</div></div></div>
         </div>
@@ -678,7 +730,7 @@ function jointSVG(){
     <rect x="120" y="68" width="60" height="14" rx="2" fill="#caa15a"/><g fill="#a87b14">${[128,142,156,170].map(x=>`<circle cx="${x}" cy="66" r="2"/>`).join('')}</g>
     <line x1="150" y1="34" x2="150" y2="90" stroke="#d9682f" stroke-width="1.5" stroke-dasharray="5 4"/>
     <g font-family="sans-serif" font-size="10.5" font-weight="700" fill="#23272a">
-      <text x="150" y="108" text-anchor="middle">Bande de jonction (face collée vers le haut)</text>
+      <text x="150" y="108" text-anchor="middle">Bande préencollée (face encollée vers le haut)</text>
       <text x="150" y="124" text-anchor="middle" fill="#6b7770" font-weight="400">Lés bord à bord, sans chevauchement</text></g>
   </svg>`;
 }
@@ -686,9 +738,9 @@ function pJonctions(){
   const has=D.calepinage.nb_jonctions>0;
   const cards=[
     ['Préparer','Rabattez les lés, nettoyez les bords. Recoupez les lisières d\'usine.'],
-    ['Positionner','Bande centrée sur le raccord, face collée vers le haut. Alignez avec soin.'],
-    ['Assembler','Rabattez un lé puis l\'autre, bord à bord, sans chevauchement.'],
-    ['Coller','Pression forte et uniforme. Maroufflez du centre vers les bords.']
+    ['Positionner','Bande préencollée centrée sous le raccord, face encollée vers le haut. Retirez le film protecteur.'],
+    ['Assembler','Rabattez un lé puis l\'autre, bord à bord, sans chevauchement ni brin pris dans la bande.'],
+    ['Presser','Pression forte et uniforme sur toute la longueur, du centre vers les bords.']
   ].map((s,i)=>`<div class="card card-pad" style="padding:16px 17px"><div style="display:flex;align-items:center;gap:10px;margin-bottom:7px"><span class="numdot" style="width:28px;height:28px;font-size:13px">${i+1}</span><div style="font-size:13.5px;font-weight:700">${s[0]}</div></div><div class="soft" style="font-size:12px;line-height:1.5">${s[1]}</div></div>`).join('');
   const body=has?`
     <div class="eyebrow">Étape 3 sur 4</div>
@@ -698,12 +750,12 @@ function pJonctions(){
     <div class="grid-2" style="margin-top:18px;align-items:start">
       <div class="card card-pad"><div class="card-h"><div class="ci">${svg('layers')}</div><h3>Détail d'une jonction</h3></div><div class="diagram" style="height:150px">${jointSVG()}</div></div>
       <div style="display:flex;flex-direction:column;gap:16px">
-        <div class="callout danger">${svg('clock')}<div class="ct"><b>Séchage : 24 h minimum.</b> Ne marchez pas sur les jonctions tant que la colle n'a pas pris.</div></div>
+        <div class="callout danger">${svg('clock')}<div class="ct"><b>Laissez prendre 24 h.</b> Ne marchez pas sur les jonctions pendant ce temps.</div></div>
         <div class="card card-pad"><div class="card-h"><div class="ci">${svg('star')}</div><h3>Conseils de pro</h3></div>
           <div class="checks">
-            <div class="chk">${ck()}<span>En cas de « tirage », rouvrez 20–30 cm et recollez progressivement.</span></div>
+            <div class="chk">${ck()}<span>Vérifiez qu'aucun brin n'est pris dans la bande avant de presser.</span></div>
             <div class="chk">${ck()}<span>Fenêtre idéale : temps sec, 10–25 °C, vent faible.</span></div>
-            <div class="chk">${ck()}<span>Lestez la jonction (planches + poids) pendant le séchage.</span></div>
+            <div class="chk">${ck()}<span>Lestez la jonction (planches + poids) pendant la prise.</span></div>
           </div></div>
       </div>
     </div>`:`
@@ -718,12 +770,12 @@ function pJonctions(){
 function pFixation(){
   const meuble=D.questionnaire.is_sol_meuble;
   const fix=(meuble?[
-    ['Fixations','Clous 15–20 cm ou grappins galvanisés. 4 à 6 fixations par mètre linéaire.'],
+    ['Fixations','Pointes de fixation sur le pourtour : <b>environ 5 par mètre linéaire</b>.'],
     ['Périmètre','Commencez par un coin. Clous en biais (45°) tous les 20–25 cm sur le pourtour.'],
     ['Points sensibles','Renforcez angles, contours d\'obstacles et zones de passage.']
   ]:[
-    ['Colle / double-face','Fixez le périmètre au cordon de colle PU ou au ruban double-face extérieur.'],
-    ['Jonctions','Maintenez les raccords collés sur toute leur longueur.'],
+    ['Périmètre','Fixez le pourtour au ruban adhésif double face extérieur, ou lestez-le.'],
+    ['Jonctions','Bande préencollée sous chaque raccord, pressée sur toute sa longueur.'],
     ['Points sensibles','Soignez les angles et bords exposés au vent.']
   ]).map((s,i)=>`<div class="step"><div class="nb">${i+1}</div><div class="st-b"><div class="t">${s[0]}</div><div class="d">${s[1]}</div></div></div>`).join('');
   const body=`
@@ -743,7 +795,7 @@ function pFixation(){
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:18px">${svg('checkc')}<div class="ct">Sur sol meuble, un <b>lestage en sable de silice</b> (optionnel) saupoudré puis brossé alourdit le gazon, redresse les brins et améliore la tenue dans le temps.</div></div>`;
+    <div class="callout info" style="margin-top:18px">${svg('checkc')}<div class="ct">Commencez la fixation une fois toutes les jonctions faites et le gazon bien tendu, sans pli.</div></div>`;
   return page(9,'Étape 4 — Fixation & brossage',body);
 }
 
@@ -759,21 +811,21 @@ function projectTips(){
   const t=[];
   // usage principal (champ 91)
   if(u.indexOf('piscine')>-1) t.push([svg('droplet'),'Bord de piscine','Gazon résistant au chlore et au sel. Soignez le drainage et la fixation près des margelles.']);
-  if(u.indexOf('balcon')>-1||u.indexOf('terrasse')>-1) t.push([svg('layers'),'Terrasse & balcon','Pas de décaissement : posez sur support propre, soignez l\'écoulement de l\'eau et fixez bien le périmètre.']);
-  if(u.indexOf('passage')>-1||u.indexOf('intensif')>-1||u.indexOf('jeux')>-1) t.push([svg('tool'),'Passage intensif & jeux','Brossage plus fréquent et lestage en sable de silice pour préserver la tenue des brins.']);
+  if(!q.is_sol_meuble && (u.indexOf('balcon')>-1||u.indexOf('terrasse')>-1)) t.push([svg('layers'),'Terrasse & balcon','Pas de décaissement : posez sur support propre, soignez l\'écoulement de l\'eau et fixez bien le périmètre.']);
+  if(u.indexOf('passage')>-1||u.indexOf('intensif')>-1||u.indexOf('jeux')>-1) t.push([svg('tool'),'Passage intensif & jeux','Brossage plus fréquent pour garder les brins relevés dans les zones piétinées.']);
   if(u.indexOf('naturel')>-1) t.push([svg('eye'),'Effet naturel','Brins multi-tons et fil frisé : un brossage régulier conserve l\'effet « vraie pelouse ».']);
   if(u.indexOf('jardin')>-1) t.push([svg('flower'),'Jardin & vie quotidienne','Entretien minimal : brossage saisonnier et rinçage occasionnel suffisent toute l\'année.']);
   // pro / sport (champs 92 / 93)
   if(sp.indexOf('putting')>-1||p.indexOf('golf')>-1) t.push([svg('star'),'Putting green','Sable de lestage pour la vitesse de roulement, aspect ras, brossage régulier.']);
   else if(sp.indexOf('padel')>-1||sp.indexOf('tennis')>-1) t.push([svg('tool'),'Padel / Tennis','Lestage sable pour le rebond et la stabilité des lignes. Brossage fréquent.']);
-  else if(sp.indexOf('multisport')>-1) t.push([svg('shield'),'Multisport','Fibres robustes : lestage et brossage réguliers pour encaisser le passage.']);
+  else if(sp.indexOf('multisport')>-1) t.push([svg('shield'),'Multisport','Fibres robustes : brossage régulier pour encaisser le passage.']);
   if(p.indexOf('restaurant')>-1||p.indexOf('hôtel')>-1||p.indexOf('hotel')>-1) t.push([svg('star'),'Lieu public','Passage soutenu : brossage renforcé et nettoyage fréquent pour garder l\'aspect neuf.']);
-  if(p.indexOf('école')>-1||p.indexOf('ecole')>-1||p.indexOf('aire de jeux')>-1) t.push([svg('shield'),'Aire de jeux','Sous-couche amortissante conseillée et nettoyage régulier de la zone.']);
+  if(p.indexOf('école')>-1||p.indexOf('ecole')>-1||p.indexOf('aire de jeux')>-1) t.push([svg('shield'),'Aire de jeux','Nettoyage régulier de la zone et brossage des passages les plus fréquents.']);
   if(p.indexOf('événementiel')>-1||p.indexOf('evenement')>-1||p.indexOf('stand')>-1) t.push([svg('pkg'),'Événementiel','Pose temporaire : fixation légère et réutilisable, stockage à plat.']);
   // animaux (champ 94)
   if(q.has_animaux) t.push([svg('paw'),'Vous avez des animaux','Zone toilette dédiée, rinçage 2 à 3 fois/semaine, nettoyant enzymatique. Accès 48 h après la pose.']);
   // soleil (champ 95)
-  if(s.indexOf('plein soleil')>-1) t.push([svg('sun'),'Plein soleil','Fibres traitées anti-UV (garantie 15 ans). Par forte chaleur, un rinçage rafraîchit la surface.']);
+  if(s.indexOf('plein soleil')>-1) t.push([svg('sun'),'Plein soleil','Fibres traitées anti-UV. Par forte chaleur, un rinçage rafraîchit la surface.']);
   else if(s.indexOf('ombre')>-1) t.push([svg('droplet'),'Zone ombragée','Surveillez mousses et humidité : brossez les feuilles et nettoyez un peu plus souvent.']);
   if(!t.length) t.push([svg('checkc'),'Conseil clé','Respectez le sens des brins et brossez après la pose pour un rendu optimal.']);
   return t.slice(0,4);
@@ -801,18 +853,17 @@ function pEntretien(){
         </div></div>
     </div>
 
-    <div class="callout info" style="margin-top:18px">${svg('shield')}<div class="ct"><b>Garantie 15 ans</b> contre la décoloration UV et l'usure normale. Un brossage régulier conserve l'aspect neuf de 10 à 15 ans.</div></div>`;
+    <div class="callout info" style="margin-top:18px">${svg('shield')}<div class="ct"><b>Garantie ${garantieAns()} ans.</b> Un brossage régulier conserve l'aspect neuf de votre gazon.</div></div>`;
   return page(11,'Entretien & garantie',body);
 }
 
 /* PAGE 10 — ACCESSOIRES */
 function pAccessoires(){
   const a=D.accessoires;
-  const items=[
-    [svg('layers'),'Géotextile anti-repousse',a.geotextile.description,a.geotextile.m2+' m² · '+a.geotextile.rouleaux+' rouleaux de 25 m'],
-    [svg('tool'),'Bande de jonction',a.bande_jonction.description,a.bande_jonction.ml+' ml · '+a.bande_jonction.unites+' jonction(s)'],
-    [svg('pin2'),'Pointes de fixation',a.pointes.description,a.pointes.boites+' boîte(s)']
-  ];
+  const items=[];
+  if(a.geotextile.m2) items.push([svg('layers'),'Géotextile',a.geotextile.description+' · '+fr1(a.geotextile.surface_posee)+' m² × 2 + 10 % = '+a.geotextile.m2+' m²',a.geotextile.rouleaux+' rouleau'+(a.geotextile.rouleaux>1?'x':'')+' de '+ROUL_GEO_M2+' m²']);
+  if(a.bande_jonction.ml_utiles) items.push([svg('tool'),'Bande de jonction préencollée',a.bande_jonction.description+' · '+fr1(a.bande_jonction.ml_utiles)+' ml utiles'+(a.bande_jonction.detail?' ('+a.bande_jonction.detail+')':''),a.bande_jonction.rouleaux+' rouleau'+(a.bande_jonction.rouleaux>1?'x':'')+' de '+BANDE_ML+' m']);
+  if(a.pointes.nombre) items.push([svg('pin2'),'Pointes de fixation',a.pointes.description+' · ≈ '+a.pointes.nombre+' pointes sur '+fr1(a.pointes.perimetre)+' m',a.pointes.boites+' boîte'+(a.pointes.boites>1?'s':'')]);
   if(a.enzyme) items.push([svg('spray'),'Nettoyant enzymatique',a.enzyme.description,a.enzyme.bouteilles+' bouteille(s)']);
   const rows=items.map(it=>`<div class="row"><span class="ri">${it[0]}</span><div class="rt"><div class="a">${it[1]}</div><div class="b">${it[2]}</div></div><div class="rv">${it[3]}</div></div>`).join('');
   const body=`
@@ -821,7 +872,7 @@ function pAccessoires(){
     <p class="lead">Quantités calculées automatiquement à partir de votre surface, de votre type de sol et du nombre de jonctions de votre plan.</p>
 
     <div style="display:flex;flex-direction:column;gap:12px;margin-top:18px">${rows}</div>
-    <div class="callout info" style="margin-top:18px">${ck()}<div class="ct"><b>Bon à savoir.</b> Le géotextile est recommandé sur sol meuble. La bande de jonction et la colle ne sont nécessaires que si votre plan comporte des raccords entre lés.</div></div>`;
+    <div class="callout info" style="margin-top:18px">${ck()}<div class="ct"><b>Bon à savoir.</b> Sur sol meuble, le géotextile se pose en <b>deux couches</b> : sous la grave 0/20 et sous le gazon. La bande de jonction préencollée n'est nécessaire que si votre plan comporte des raccords entre lés.</div></div>`;
   return page(12,'Accessoires & quantités',body);
 }
 
@@ -850,9 +901,9 @@ function pOrdrePose(){
 function pConseils(){
   const tips=projectTips().map(t=>`<div class="tip"><span class="ti2">${t[0]}</span><div><div class="tt2">${t[1]}</div><div class="td2">${t[2]}</div></div></div>`).join('');
   const erreurs=[
-    ['Sable non adapté','Sable lavé 0/4 uniquement, jamais de sable de maçonnerie : il retient l\'eau et se tasse.'],
+    D.questionnaire.is_sol_meuble ? ['Mauvais sable','Sable 0/4 de carrière concassé non lavé uniquement. Un sable lavé ou roulé reste meuble et se creuse.'] : ['Évacuations bouchées','Ne recouvrez jamais caniveaux et siphons : l\'eau doit continuer à s\'écouler.'],
     ['Brins mal orientés','Tous les lés doivent pointer dans le même sens, sinon les raccords se voient à la lumière.'],
-    ['Jonctions sous la pluie','Ne collez jamais par temps humide : la colle ne prend pas et le raccord finit par lâcher.'],
+    ['Jonctions par temps humide','Ne faites pas les jonctions par temps humide : la bande adhère mal et le raccord finit par lâcher.'],
     ['Support trop meuble','Compactez soigneusement : un sol non tassé crée des creux et des vagues après quelques semaines.']
   ].map((e,i)=>`<div class="err"><span class="err-n">${i+1}</span><div><div class="err-t">${e[0]}</div><div class="err-d">${e[1]}</div></div></div>`).join('');
   const body=`
@@ -883,7 +934,7 @@ function pRecap(){
   lignes.push([svg('truck'),'Livraison','France entière','Offerte']);
   var rows = lignes.map(function(it){ return '<div class="row"><span class="ri">'+it[0]+'</span><div class="rt"><div class="a">'+it[1]+'</div><div class="b">'+it[2]+'</div></div><div class="rv">'+it[3]+'</div></div>'; }).join('');
   var eng = [
-    [svg('shield'),'Garantie 15 ans','Anti-UV & usure normale'],
+    [svg('shield'),'Garantie '+garantieAns()+' ans','Sur votre gazon'],
     [svg('clock'),'Paiement en 4×','Sans frais, par carte'],
     [svg('check'),'Paiement sécurisé','Cryptage bancaire'],
     [svg('mail'),'Support dédié','sav@verdeko.fr'],
@@ -937,7 +988,7 @@ function ctx(){
     famille: famille,
     sport: famille!=='standard',
     piscine: u.indexOf('piscine')>-1,
-    terrasse: u.indexOf('terrasse')>-1 || u.indexOf('balcon')>-1,
+    terrasse: !q.is_sol_meuble && (u.indexOf('terrasse')>-1 || u.indexOf('balcon')>-1),   // LOT-AUDIT-GUIDE : le sol decide
     passage: u.indexOf('passage')>-1 || u.indexOf('intensif')>-1 || u.indexOf('jeux')>-1,
     aireJeux: pr.indexOf('ecole')>-1 || pr.indexOf('école')>-1 || pr.indexOf('aire de jeux')>-1,
     lieuPublic: pr.indexOf('restaurant')>-1 || pr.indexOf('hotel')>-1 || pr.indexOf('hôtel')>-1,
@@ -986,8 +1037,8 @@ function pUsagePiscine(){
   var shape = poolShape();
   var steps = [
     ["Drainage prioritaire","L'eau de baignade ruisselle en continu : ménagez une pente vers l'extérieur, jamais de rétention d'eau sous le gazon."],
-    ["Au ras des margelles","Découpez le gazon au plus près de la margelle et collez le périmètre. Évitez les clous près du bassin."],
-    ["Lestage minimal","Limitez le sable de remplissage : il migre vers le bassin et finit par encrasser le filtre."],
+    ["Au ras des margelles","Découpez le gazon au plus près de la margelle. Près du bassin, fixez au ruban double face plutôt qu'aux pointes."],
+    ["Jonctions à distance","Placez les raccords loin du bord du bassin, là où l'eau ruisselle le moins."],
     ["Confort & résistance","Fibres traitées anti-chlore. Un rinçage à l'eau claire après forte fréquentation prolonge l'aspect neuf."]
   ].map(function(s,i){ return '<div class="step"><div class="nb">'+(i+1)+'</div><div class="st-b"><div class="t">'+s[0]+'</div><div class="d">'+s[1]+'</div></div></div>'; }).join('');
   var body = `
@@ -1109,19 +1160,20 @@ function pUsageIntensif(){
   var inner = '<ellipse cx="155" cy="146" rx="58" ry="46" fill="#e9a23b" fill-opacity=".3" stroke="#d98b1f" stroke-width="2" stroke-dasharray="5 4"/>'
     + '<ellipse cx="305" cy="146" rx="58" ry="46" fill="#e9a23b" fill-opacity=".3" stroke="#d98b1f" stroke-width="2" stroke-dasharray="5 4"/>'
     + '<g font-family="sans-serif" font-weight="700" fill="#a87b14"><text x="155" y="150" text-anchor="middle" font-size="10.5">Zone de passage</text><text x="305" y="150" text-anchor="middle" font-size="10.5">Zone de jeu</text></g>'
-    + '<g font-family="sans-serif" font-weight="400" fill="#6b7770"><text x="230" y="291" text-anchor="middle" font-size="10.5">Sous-couche amortissante + lestage sable de silice</text></g>';
+    + '<g font-family="sans-serif" font-weight="400" fill="#6b7770"><text x="230" y="291" text-anchor="middle" font-size="10.5">Base compactée et fixation renforcée</text></g>';
+  var jeux = ctx().aireJeux;
   return usagePage({
-    section:'Passage intensif', icon:'alert', schemaTitle:'Zones sollicitées', meta:'Usure',
-    title:'Passage intensif & <span class="hl-mark">aire de jeux</span>',
-    lead:"Les zones très fréquentées s'usent plus vite : une base renforcée et le bon lestage préservent la tenue dans le temps.",
+    section: jeux?'Aire de jeux':'Passage intensif', icon:'alert', schemaTitle:'Zones sollicitées', meta:'Usure',
+    title: jeux?'Pose pour <span class="hl-mark">aire de jeux</span>':'Pose en <span class="hl-mark">passage intensif</span>',
+    lead:"Les zones très fréquentées travaillent plus : une base bien compactée et une fixation soignée préservent la tenue dans le temps.",
     svgInner: usageSVG(inner),
     steps:[
-      ["Sous-couche amortissante","Pour une aire de jeux, elle assure la sécurité (hauteur de chute) et le confort."],
       ["Base très compactée","Pas de tassement dans les zones piétinées : compactez par passes croisées."],
-      ["Lestage sable de silice","Maintient la tenue des brins là où le passage est le plus répété."],
-      ["Fixation renforcée","Soignez le périmètre et les zones d'entrée et de virage, qui lâchent en premier."]
+      ["Fixation renforcée","Soignez le périmètre et les zones d'entrée et de virage, qui travaillent le plus."],
+      ["Brossage fréquent","Relevez régulièrement les brins dans les passages les plus fréquentés."],
+      ["Nettoyage régulier","Retirez feuilles et débris pour garder une surface saine."]
     ],
-    callout:"Sur une aire de jeux pour enfants, la sous-couche amortissante n'est pas un confort mais une sécurité (hauteur de chute)."
+    callout:"Les zones d'entrée et de virage travaillent le plus : renforcez-y la fixation et le brossage."
   });
 }
 
@@ -1135,7 +1187,7 @@ function pUsageTerrasse(){
     + '<g stroke="#2F5C69" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".75">'+arrows+'</g>'
     + '<g fill="#2F6D3C">'+fix+'</g>'
     + '<g font-family="sans-serif" font-weight="700"><text x="230" y="244" text-anchor="middle" font-size="10.5" fill="#23454f">Caniveau / évacuation (à ne pas obstruer)</text>'
-    + '<text x="230" y="52" text-anchor="middle" font-size="10" font-weight="400" fill="#6b7770">Fixation du périmètre (colle / double-face)</text></g>';
+    + '<text x="230" y="52" text-anchor="middle" font-size="10" font-weight="400" fill="#6b7770">Fixation du périmètre (ruban double face)</text></g>';
   return usagePage({
     section:'Terrasse & balcon', icon:'layers', schemaTitle:'Schéma de principe', meta:'Sur dalle',
     title:'Pose sur <span class="hl-mark">terrasse & balcon</span>',
@@ -1144,10 +1196,10 @@ function pUsageTerrasse(){
     steps:[
       ["Pas de décaissement","Posez directement sur dalle, carrelage ou bois, propre et sec."],
       ["Évacuations dégagées","Ne bouchez jamais caniveaux et siphons ; conservez la pente d'écoulement existante."],
-      ["Fixation non perçante","Colle ou ruban double-face extérieur, lestage du périmètre : indispensable en copropriété."],
+      ["Fixation non perçante","Ruban adhésif double face extérieur ou lestage du périmètre : indispensable en copropriété."],
       ["Découpe nette","Soignez les contours de jardinières, gaines et seuils de porte."]
     ],
-    callout:"Ne percez jamais une dalle d'étanchéité ni un balcon en copropriété : fixez au double-face ou à la colle, et lestez le périmètre."
+    callout:"Ne percez jamais une dalle d'étanchéité ni un balcon en copropriété : fixez au ruban double face ou lestez le périmètre."
   });
 }
 
@@ -1169,7 +1221,7 @@ function pUsagePro(){
       ["Passage soutenu","Fibres robustes et base très stable pour encaisser la fréquentation."],
       ["Fixation renforcée","Périmètre, jonctions et zones d'entrée : ce sont elles qui s'usent en premier."],
       ["Entretien fréquent","Brossage et nettoyage réguliers pour garder un aspect neuf en permanence."],
-      ["Sécurité & normes","Selon l'établissement (ERP), prévoyez sous-couche ou traitement antidérapant."]
+      ["Réglementation","Selon l'établissement (ERP), vérifiez les exigences applicables avant la pose."]
     ],
     callout:"Anticipez l'usure : les zones d'entrée et de virage s'abîment en premier, renforcez-y la fixation et le brossage."
   });
@@ -1183,7 +1235,6 @@ function pickUsage(c){
   if(c.famille==='padel' || /padel|tennis/.test(sp)) return pUsagePadel;
   if(/foot|football/.test(sp) || /foot|football/.test(u)) return pUsageFoot;
   if(c.famille==='putting' || /putting|golf/.test(sp)) return pUsageGolf;
-  if(c.famille==='multisport') return pUsageIntensif;
   if(c.piscine) return pUsagePiscine;
   if(c.aireJeux || c.passage) return pUsageIntensif;
   if(c.terrasse) return pUsageTerrasse;
@@ -1201,7 +1252,7 @@ function pEnd(){
       <h2>Bonne installation,<br><span style="color:var(--green-600)">${D.client.prenom||'et à bientôt'}</span> !</h2>
       <p>Votre dossier est prêt. Suivez les étapes dans l'ordre, prenez votre temps sur la préparation du sol et les jonctions : c'est la clé d'un rendu parfait. Notre équipe reste à votre disposition.</p>
       <div class="band">
-        <div class="b">${svg('shield')}<div><div class="bt">Garantie 15 ans</div><div class="bd">UV & usure normale</div></div></div>
+        <div class="b">${svg('shield')}<div><div class="bt">Garantie ${garantieAns()} ans</div><div class="bd">Sur votre gazon</div></div></div>
         <div class="vline"></div>
         <div class="b">${svg('truck')}<div><div class="bt">Livraison offerte</div><div class="bd">France entière</div></div></div>
         <div class="vline"></div>
@@ -1272,6 +1323,7 @@ function paint(){
   try{
     normalize();
     SURF = D.terrain.surface_brute || D.terrain.surface_nette || 0;
+    calculAccessoires();
     TOTAL = (D.meta && Number(D.meta.total_global) > 0) ? Number(D.meta.total_global) : SURF * D.produit.prix_m2;
     __PG = 1;
     var c = ctx();
