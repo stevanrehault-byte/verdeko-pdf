@@ -97,7 +97,7 @@ app.post('/test', async (req, res) => {
             </html>
         `);
 
-        const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
+        const pdfBuffer = Buffer.from(await page.pdf({ format: 'A4', printBackground: true }));
         await browser.close();
 
         res.setHeader('Content-Type', 'application/pdf');
@@ -243,13 +243,13 @@ app.post('/generate', async (req, res) => {
         await new Promise(r => setTimeout(r, 300));
 
         // Générer le PDF
-        const pdfBuffer = await page.pdf({
+        const pdfBuffer = Buffer.from(await page.pdf({
             format: 'A4',
             landscape: true,
             printBackground: true,
             margin: { top: 0, right: 0, bottom: 0, left: 0 },
             preferCSSPageSize: false
-        });
+        }));
 
         await browser.close();
         browser = null;
